@@ -16,6 +16,35 @@ school_colors["transmutation"] = "DarkGoldenrod"
 school_colors["universal"] = "Gold"
 school_colors["see text"] = "LightSteelBlue"
 
+classes = [
+    "sor",
+    "wiz",
+    "cleric",
+    "druid",
+    "ranger",
+    "bard",
+    "paladin",
+    "alchemist",
+    "summoner",
+    "witch",
+    "inquisitor",
+    "oracle",
+    "antipaladin",
+    "magus",
+    "adept",
+    "bloodrager",
+    "shaman",
+    "psychic",
+    "medium",
+    "mesmerist",
+    "occultist",
+    "spiritualist",
+    "skald",
+    "investigator",
+    "hunter",
+    "summoner_unchained"
+]
+
 one = re.compile(r"\b(one)\b")
 hitdieless = re.compile(r"(\d+)\s+HD\s+or\s+less")
 hitdiemore = re.compile(r"(\d+)\s+HD\s+or\s+more")
@@ -46,7 +75,7 @@ def shorten(val, aggressive = True):
         ('; see text', '…'), (', see text', '…'), ('; see below', '…'), (', see below', '…'), (' (see below)', '…'), (' (see text)', '…'), ('see text', '…'), ('see below', '…'), ('see Text', '…'),
         (' (object)', '; obj.'), (' (harmless)', '; safe'), (' (harmless, object)', '; safe, obj.'),
         (' (if interacted with)', ', interact'),
-        ('yes', '✓'), ('none', '✗'), ('no', '✗'), ('None', '✗'), ('No', '✗'),
+        ('none', 'no'), ('None', 'no' ), ('No', 'no'),
         ('Fortitude', 'Fort.'), ('Reflex', 'Ref.'), ('Fort. negates', '<del>Fort.</del>'), ('Will negates', '<del>Will</del>'), ('Ref. negates', '<del>Ref.</del>'),
         ('Fort. partial', '<i>Fort.</i>'), ('Will partial', '<i>Will</i>'), ('Ref. partial', '<i>Ref.</i>'),
         ('.…', '…'), (' and …', '…'), (' + ', '+')
@@ -86,8 +115,7 @@ def readSpells(file):
     details = re.compile(r"(\s+\(.*?\)|\s+)")
     dicedc = re.compile(r"(\d+d(\d+|%)\s?[\+\-x]?\s*\d*|DC\s*\d+|[\+\-]\d+\s+([A-Za-z]+\s+)?(\s*armor\s+)?(bonus|penalty)|[\+\-]?\d+\s+AC|AC\s+\d+|(\d+,)?\d+\s+(cp|sp|gp|pp|rounds?|feet))")
     rangeOnly = re.compile(r".*? \((.*?)\)")
-    sentences = re.compile(r".+?[\.\,]")
-    caster = "sor"
+    splitSubschools = re.compile(r"\s+or\s+|,\s*")
     for row in rows:
         record = {}
         for key, cell in zip(first_row, row):
@@ -101,100 +129,60 @@ def readSpells(file):
             else:
                 record[key] = cell.value
 
-        spellName = record["name"]
-        description = record["description"]
-        print(spellName + " " + str(len(description)), file=sys.stderr)
 
-        spellCaster = record[caster]
-        if spellCaster == "NULL":
-            continue
+
         card = {}
-        card["count"] = 1
         school = record["school"]
+        card["school"] = school.capitalize() 
+        card["subschools"] = [ x.capitalize() for x in splitSubschools.split(record["subschool"]) ]
         card["color"] = school_colors[school.lower()]
-        card["icon"] = "white-book-" + spellCaster
-        card["icon_back"] = "robe"
 
-        mats = ""
+        for c in classes:
+            if record[c] == "NULL":
+                card[c] = None
+            card[c] = record[c]
+        card["name"] = record["name"]
+
+        card["components_summary"] = details.sub('', record["components"])
+        card["components"] = []
+        if record["verbal"] != "0":
+            card["components"].append("V")
+        if record["somatic"] != "0":
+            card["components"].append("S")
+        if record["material"] != "0":
+            card["components"].append("M")
+        if record["focus"] != "0":
+            card["components"].append("F")
+        if record["divine_focus"] != "0":
+            card["components"].append("DF")
+        card["materials"] = []
         for m in materials.finditer(record["components"]):
-            mats = mats + " <strong>" + m.group(1) + "</strong> " + m.group(2).capitalize() + "."
+            card["materials"].append({ "kind" : m.group(1), "description" : m.group(2).capitalize() })
 
-        pages = []
-        if len(description) > 500 and len(description) < 670:
-            pages.append("<span style=\"font-size:7pt\">" + description + mats + "</span>")
-        else:
-            page = ""
-            currentPageLength = 0
-            foundSentence = False
-            for m in sentences.finditer(description):
-                foundSentence = True
-                sentence = m.group(0) 
-                length = len(sentence)
-                maxLength = 650
-                if len(pages) == 0:
-                    maxLength = 500
-                if currentPageLength + length >= maxLength:
-                    pages.append(page)
-                    page = ""
-                    currentPageLength = 0
-                page = page + sentence
-                currentPageLength = len(page)
-            if foundSentence == False:
-                page = description
-            if page != "":
-                pages.append(page)
-            pages[-1] = pages[-1] + mats 
-
-        for idx, page in enumerate(pages):
-            if len(pages) > 1:
-                card["title"] = spellName + " " + str(idx + 1) + "/" + str(len(pages))
+        card["casting_time"] = shorten(record["casting_time"])
+        card["range"] = shorten(rangeOnly.sub(r"\1", record["range"]))
+        card["duration"] = shorten(record["duration"])
+        card["saving_throw"] = shorten(record["saving_throw"])
+        card["resistance"] = shorten(record["spell_resistence"])
+        spellArea = record["area"]
+        spellTargets = record["targets"]
+        combineAT = spellArea == spellTargets
+        card["area_targets"] = []
+        if combineAT == False and spellArea != "" and spellArea != "None":
+            card["area_targets"].append({ "kind" : "A", "description" : shorten(spellArea, False) })
+        if spellTargets != "" and spellTargets != "None":
+            if combineAT:
+                card["area_targets"] = [{ "kind" : "A/W", "description" : shorten(spellTargets, False) }]
             else:
-                card["title"] = spellName
-            if len(card["title"]) > 22:
-                card["title_size"] = "10"
-            page = dicedc.sub(r"<strong>\1</strong>", page)
-            card["contents"] = []
-            if idx == 0:
-                subschool = record["subschool"]
-                components = "<span style=\"float: right; font-size: 8pt; font-variant: normal; letter-spacing: normal; margin-top: 2px;\">" + details.sub('', record["components"]) + "</span>"
-                if subschool != "":
-                    card["contents"].append("section | " + school.title() + ", " + subschool.title() + components)
-                else:
-                    card["contents"].append("section | " + school.title() + components)
-                summary = "<span style=\"display:inline-block;\"><strong>T</strong>&#8201;" + shorten(record["casting_time"]) + "</span> "
-                spellRange = record["range"]
-                if spellRange != "":
-                    spellRange = rangeOnly.sub(r"\1", spellRange)
-                    summary = summary + "<span style=\"display:inline-block;\"><strong>R</strong>&#8201;" + shorten(spellRange) + "</span> "
-                spellDuration = record["duration"]
-                if spellDuration != "":
-                    summary = summary + "<span style=\"display:inline-block;\"><strong>D</strong>&#8201;" + shorten(spellDuration) + "</span> "
-                spellSaving = record["saving_throw"]
-                spellResistance = record["spell_resistence"]
-                if spellSaving != "":
-                    summary = summary + "<span style=\"display:inline-block;\"><strong>S</strong>&#8201;" + shorten(spellSaving) + "</span> "
-                if spellResistance != "":
-                    summary = summary + "<span style=\"display:inline-block;\"><strong>X</strong>&#8201;" + shorten(spellResistance) + "</span> "
-                spellArea = record["area"]
-                spellTagets = record["targets"]
-                combineAT = spellArea == spellTagets
-                if combineAT == False and spellArea != "" and spellArea != "None":
-                    summary = summary + "<span style=\"display:inline-block;\"><strong>A</strong> " + shorten(spellArea, False) + "</span> "
-                if spellTagets != "" and spellTagets != "None":
-                    if combineAT:
-                        summary = summary + "<span style=\"display:inline-block;\"><strong>A/W</strong>&#8201;" + shorten(spellTagets, False) + "</span> "
-                    else:
-                        summary = summary + "<span style=\"display:inline-block;\"><strong>W</strong>&#8201;" + shorten(spellTagets, False) + "</span> "
-                summary = '<span style="display:flex; justify-content:space-between; flex-wrap: wrap; padding: 0 1px;">' + summary + "</span>"
-                card["contents"].append("text | " + summary)
+                card["area_targets"].append({ "kind" : "W", "description" : shorten(spellTargets, False) })
 
-            page = '<span style="display: block; text-align: justify">' + page + '</span>'
-            card["contents"].append("text | " + conditions(page))
-            card["contents"].append("fill | 1")
-            cards.append(card.copy())
+        record["description"] = dicedc.sub(r"<strong>\1</strong>", record["description"])
+        card["description"] = conditions(record["description"])
+        card["source"] = record["source"]
+
+        cards.append(card.copy())
 
     print(dumps(cards, ensure_ascii=False))
 
 
 readSpells('spell_full.xlsx')
-
