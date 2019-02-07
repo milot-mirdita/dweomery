@@ -1,43 +1,41 @@
 <template>
-  <div id="app">
-    <form class="filter">
+<div id="app">
+  <nav :class="['navbar', 'navbar-expand-lg', 'navbar-light', 'bg-light', { 'fixed-top ' : inSelection } ]">
+    <a @click="filter.visible = !filter.visible" class="navbar-brand" href="#" v-if="inSelection == false"><i class="fas fa-bars"></i>&nbsp;Tiny Hut</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto" v-if="inSelection == false">
+        <li class="nav-item">
+          <a @click="mode = 'book'" class="nav-link" v-if="mode == 'browser'"><i class="fa fa-book"></i>&nbsp;Go to spellbook</a>
+          <a @click="mode = 'browser'" class="nav-link" v-else><i class="fa fa-grip-horizontal"></i>&nbsp;Go to browser</a>
+        </li>
+        <li :class="['nav-item', { 'active' : activeSpellbook == book.id }]" v-for="book in spellbooks" :key="book.id">
+          <a @click="activeSpellbook = book.id" class="nav-link"><i :class="['far', { 'fa-dot-circle' : activeSpellbook == book.id }, { 'fa-circle' : activeSpellbook != book.id  } ]"></i>&nbsp;{{book.description}}</a>
+        </li>
+        <li class="nav-item">
+          <a @click="inSelection = true" class="nav-link"><i class="fa fa-plus-circle"></i></a>
+        </li>
+      </ul>
+      <ul class="navbar-nav mr-auto caster-selection" v-else>
+        <li class="nav-item">
+          <a @click="inSelection = false" class="nav-link"><i class="fa fa-stop-circle"></i></a>
+        </li>
+        <li class="nav-item" v-for="caster in casters" :key="caster.kind">
+          <a @click="addSpellbook(caster)" class="nav-link">{{caster.description}}</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <div :class="['browser', { 'in-selection' : inSelection } ]" v-if="activeSpellbook > -1">
+    <form class="filter" v-if="filter.visible">
       <div class="form-group">
         <label for="spell-name" class="label">Name</label>
         <input id="spell-name" class="form-control form-control-sm" v-model="filter.name" />
       </div>
-      <div class="form-group">
-      <label for="caster" class="label">Caster Class</label>
-        <select id="caster" class="form-control form-control-sm" v-model="filter.caster">
-          <option value="sor">Sorcerer</option>
-          <option value="wiz">Wizard</option>
-          <option value="cleric">Cleric</option>
-          <option value="druid">Druid</option>
-          <option value="ranger">Ranger</option>
-          <option value="bard">Bard</option>
-          <option value="paladin">Paladin</option>
-          <option value="alchemist">Alchemist</option>
-          <option value="summoner">Summoner</option>
-          <option value="summoner_unchained">Summoner (unchained)</option>
-          <option value="witch">Witch</option>
-          <option value="inquisitor">Inquisitor</option>
-          <option value="oracle">Oracle</option>
-          <option value="antipaladin">Antipaladin</option>
-          <option value="magus">Magus</option>
-          <option value="adept">Adept</option>
-          <option value="bloodrager">Bloodrager</option>
-          <option value="shaman">Shaman</option>
-          <option value="psychic">Psychic</option>
-          <option value="medium">Medium</option>
-          <option value="mesmerist">Mesmerist</option>
-          <option value="occultist">Occultist</option>
-          <option value="spiritualist">Spiritualist</option>
-          <option value="skald">Skald</option>
-          <option value="investigator">Investigator</option>
-          <option value="hunter">Hunter</option>
-        </select>
-      </div>
-
-      <div class="form-group">
+      <div class="form-group" v-if="mode == 'browser'">
       <div class="input-group input-group-sm">
         <div class="input-group-prepend">
           <span class="input-group-text">Level</span>
@@ -47,19 +45,20 @@
       </div>
       </div>
       <div class="form-group">
-        <label for="school" class="label">Spell school</label>
-        <select id="school" class="form-control form-control-sm" v-model="filter.school" multiple :size="schools.size">
-          <option v-for="school in schools" :key="school">{{school}}</option>
+        <label for="school" class="label">Spell schools</label><i v-if="filter.school.length > 0" @click="filter.school = []" class="fa fa-broom float-right clear"></i>
+        <select id="school" class="form-control form-control-sm magic-school" v-model="filter.school" multiple :size="schools.size">
+          <option v-for="school in schools" :key="school" :value="school"><span class="magic-symbol" v-html="schoolToSymbol[school]"></span>&nbsp;{{school}}</option>
         </select>
+        <small>Use CTRL to select or unselect schools.</small>
       </div>
       <div class="form-group">
-        <label for="subschool" class="label">Subschool</label>
+        <label for="subschool" class="label">Subschools</label><i v-if="filter.subschool.length > 0" @click="filter.subschool = []" class="fa fa-broom float-right clear"></i>
         <select id="subschool" class="form-control form-control-sm" v-model="filter.subschool" multiple :size="4">
           <option v-for="school in subschools" :key="school">{{school}}</option>
         </select>
       </div>
       <div class="form-group">
-        <label for="components" class="label">Components</label>
+        <label for="components" class="label">Components</label><i v-if="filter.components.length > 0" @click="filter.components = []" class="fa fa-broom float-right clear"></i>
         <select v-model="filter.components" id="components" class="form-control form-control-sm" multiple size="5">
           <option v-for="c in components" :key="c.kind" :value="c.kind">{{c.description}}</option>
         </select>
@@ -72,11 +71,19 @@
         </select>
       </div>
     </form>
-    <div class="spells">
+    <div :class="['spells', { 'spells-wide' : !filter.visible }]" >
       <card v-for="card in filtered"
-        :key="card.title" :card="card" :caster="filter.caster"></card>
+        :key="card.title"
+        :mode="mode"
+        :card="card"
+        :caster="spellbooks[activeSpellbook].kind"
+        @selection="spellbooks[activeSpellbook].cards.push($event)"></card>
     </div>
   </div>
+  <div v-else :class="['center', { 'in-selection' : inSelection } ]">
+    Add a class with the plus button
+  </div>
+</div>
 </template>
 
 <script>
@@ -122,13 +129,54 @@ var levenshtein = function(a, b) {
 }
 
 export default {
-  name: 'app',
   components: {
     Card
   },
   data: function() {
     return {
         cards: Spells,
+        activeSpellbook: 0,
+        spellbooks: [ { id: 0, kind: "sor", description: "Sorcerer", cards: [] } ],
+        schoolToSymbol: {
+          "Abjuration" : "&#xE000;",
+          "Conjuration" : "&#xE001;",
+          "Divination" : "&#xE002;",
+          "Enchantment" : "&#xE003;",
+          "Evocation" : "&#xE007;",
+          "Illusion" : "&#xE004;",
+          "Necromancy" : "&#xE005;",
+          "See text" : "&#xE009;",
+          "Transmutation" : "&#xE006;",
+          "Universal" : "&#xE008;",
+        },
+        casters: [
+          { kind: "sor", description: "Sorcerer" },
+          { kind: "wiz", description: "Wizard" },
+          { kind: "cleric", description: "Cleric" },
+          { kind: "druid", description: "Druid" },
+          { kind: "ranger", description: "Ranger" },
+          { kind: "bard", description: "Bard" },
+          { kind: "paladin", description: "Paladin" },
+          { kind: "alchemist", description: "Alchemist" },
+          { kind: "summoner", description: "Summoner" },
+          { kind: "summoner_unchained", description: "Summoner (unchained)" },
+          { kind: "witch", description: "Witch" },
+          { kind: "inquisitor", description: "Inquisitor" },
+          { kind: "oracle", description: "Oracle" },
+          { kind: "antipaladin", description: "Antipaladin" },
+          { kind: "magus", description: "Magus" },
+          { kind: "adept", description: "Adept" },
+          { kind: "bloodrager", description: "Bloodrager" },
+          { kind: "shaman", description: "Shaman" },
+          { kind: "psychic", description: "Psychic" },
+          { kind: "medium", description: "Medium" },
+          { kind: "mesmerist", description: "Mesmerist" },
+          { kind: "occultist", description: "Occultist" },
+          { kind: "spiritualist", description: "Spiritualist" },
+          { kind: "skald", description: "Skald" },
+          { kind: "investigator", description: "Investigator" },
+          { kind: "hunter", description: "Hunter" },
+        ],
         components: [
           { kind: "V", description: "Verbal" },
           { kind: "S", description: "Somatic" },
@@ -137,15 +185,17 @@ export default {
           { kind: "DF", description: "Divine focus" },
         ],
         filter: {
+          visible: true,
           name: "",
-          caster: "sor",
           minLevel: 0,
           maxLevel: 0,
           school: [],
           subschool: [],
           components: [],
         },
-        order: "level"
+        order: "level",
+        inSelection: false,
+        mode: "browser",
     }
   },
   computed: {
@@ -156,10 +206,11 @@ export default {
       return new Set([...new Set(this.cards.map(card => card.subschools).flat())].sort());
     },
     filtered: function() {
-      var filtered = this.cards.filter(card => {
-        return card[this.filter.caster] != null
-          && card[this.filter.caster] >= this.filter.minLevel
-          && card[this.filter.caster] <= this.filter.maxLevel
+      var cards = this.mode == "book" ? this.spellbooks[this.activeSpellbook].cards : this.cards;
+      var filtered = cards.filter(card => {
+        var caster = this.spellbooks[this.activeSpellbook].kind;
+        return card[caster] != null
+          && (this.mode == "book" || (card[caster] >= this.filter.minLevel && card[caster] <= this.filter.maxLevel))
           && (this.filter.school.length == 0 || this.filter.school.includes(card["school"]))
           && (this.filter.subschool.length == 0 || [...this.filter.subschool].filter(s => card["subschools"].includes(s)).length > 0)
           && (this.filter.components.length == 0 || (card["components"].length == this.filter.components.length && card["components"].every(s => this.filter.components.includes(s))))
@@ -187,6 +238,16 @@ export default {
       }
       return filtered;
     }
+  },
+  methods: {
+    addSpellbook(card) {
+      var copy = Object.assign({}, card);
+      copy.id = this.spellbooks.length;
+      copy.cards = [];
+      this.spellbooks.push(copy);
+      this.activeSpellbook = copy.id;
+      this.inSelection = false;
+    }
   }
 }
 </script>
@@ -195,13 +256,26 @@ export default {
 @import "~bootstrap/scss/bootstrap";
 
 @font-face {
+    font-family: 'DnDMagicSchools';
+    src: url('assets/DnDMagicSchools.woff2') format('woff2'),
+        url('assets/DnDMagicSchools.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+@font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 400;
   src: local('Open Sans'), local('OpenSans'), url('http://themes.googleusercontent.com/static/fonts/opensans/v5/cJZKeOuBrn4kERxqtaUH3T8E0i7KZn-EPnyo3HZu7kw.woff') format('woff');
 }
-* {
-  box-sizing: border-box;
+
+@font-face {
+  font-family: 'PT Sans Narrow';
+  font-style: normal;
+  font-weight: 400;
+  src: local('PT Sans Narrow'), local('PTSans-Narrow'), url(https://fonts.gstatic.com/s/ptsansnarrow/v9/BngRUXNadjH0qYEzV7ab-oWlsbCGwR2oefDo.woff2) format('woff2');
 }
 
 #app {
@@ -210,7 +284,40 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.magic-school {
+  font-family: 'DnDMagicSchools', 'Open Sans', Helvetica, Arial, sans-serif;
+}
+
+.clear {
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.5);
+
+  &:hover {
+    color: #000;
+  }
+}
+
+.center {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.browser {
+  display: flex;
   flex-direction: row;
+}
+
+.in-selection {
+  margin-top: 56px;
 }
 
 .filter {
@@ -219,11 +326,36 @@ export default {
   width: 20vw;
   padding: 10px;
 }
+@media print {
+  .spells {
+    justify-content: flex-start !important;
+  }
+}
 
 .spells {
   position: relative;
   width: 80vw;
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
+  align-self: flex-start;
+
+  &.spells-wide {
+    width: 100vw;
+  }
+}
+.navbar {
+  a {
+    cursor: pointer;
+  }
+  .caster-selection {
+    flex-wrap: wrap;
+    justify-content: center;
+
+    a {
+      font-family: 'PT Sans Narrow', sans-serif;
+      white-space: nowrap;
+    }
+  }
 }
 </style>

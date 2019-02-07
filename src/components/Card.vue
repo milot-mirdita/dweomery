@@ -2,7 +2,8 @@
   <div class="card" :style="{ borderColor : card.color }">
     <div class="level">{{ card[caster] }}</div>
     <div class="card-inner">
-      <h1>{{ card.name }}</h1>
+      <h1 v-if="mode=='browser'"><a @click="$emit('selection', card)">{{ card.name }}<template v-if="false">&nbsp;<i class="fas fa-book"></i></template></a></h1>
+      <h1 v-else>{{ card.name }}</h1>
       <hr :style="{ borderColor : card.color }" />
       <div>
         <div style="float:left">{{ card.school }}<span v-for="s in card.subschools" :key="s"><template v-if="s">, {{s}}</template></span></div>
@@ -48,28 +49,17 @@ export default {
   name: 'Card',
   props: {
     card: Object,
-    caster: String
+    caster: String,
+    mode: {
+      type: String,
+      default: "select"
+    }
   }
 }
 </script>
 
 <style scoped lang="sass">
-@font-face {
-  font-family: 'BenchNine';
-  font-style: normal;
-  font-weight: 400;
-  src: local('BenchNine Regular'), local('BenchNine-Regular'), url(https://fonts.gstatic.com/s/benchnine/v7/ahcbv8612zF4jxrwMosbUMl0r06wow.woff2) format('woff2');
-}
-
-@font-face {
-  font-family: 'PT Sans Narrow';
-  font-style: normal;
-  font-weight: 400;
-  src: local('PT Sans Narrow'), local('PTSans-Narrow'), url(https://fonts.gstatic.com/s/ptsansnarrow/v9/BngRUXNadjH0qYEzV7ab-oWlsbCGwR2oefDo.woff2) format('woff2');
-}
-
 .card {
-  box-sizing: border-box;
   width: 63mm;
   height: 88mm;
   max-height: 88mm;
@@ -96,7 +86,7 @@ export default {
       position: absolute;
       bottom: -0.75mm;
       right: 0;
-      font-family: 'PT Sans Narrow', 'BenchNine', sans-serif;
+      font-family: 'PT Sans Narrow', sans-serif;
       font-size: 5pt;
       text-align: right;
       background-color: white;
@@ -113,6 +103,14 @@ export default {
     h1 {
       font-size: 10pt;
       margin: 0;
+
+      a {
+        color:inherit;
+        cursor: pointer;
+        &:hover {
+          text-decoration: underline;
+        }
+      }
     }
 
     hr {
@@ -130,6 +128,7 @@ export default {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
+      flex-shrink: 0;
     }
 
     .text {

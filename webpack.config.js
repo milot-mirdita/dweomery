@@ -91,8 +91,7 @@ module.exports = (env, argv) => {
             new CompressionPlugin({
                 test: isProduction ? /\.(js|html|css|svg)(\?.*)?$/i : undefined,
                 minRatio: 1
-            }),
-            !isProduction ? new webpack.HotModuleReplacementPlugin() : new NullPlugin(),
+            })
         ],
         devtool: isProduction ? '#source-map' : '#eval-source-map'
     }
