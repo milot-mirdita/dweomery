@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from openpyxl import load_workbook
+from titlecase import titlecase
 from json import dumps
 import sys
 import re
@@ -110,12 +111,13 @@ def readSpells(file):
     r = wb[spellSheet]
     rows = r.rows
     first_row = [cell.value for cell in next(rows)]
-    cards = []
+    cards = {}
     materials = re.compile(r"([VSMDF\/]+)\s?\((.*?)\)")
     details = re.compile(r"(\s+\(.*?\)|\s+)")
     dicedc = re.compile(r"(\d+d(\d+|%)\s?[\+\-x]?\s*\d*|DC\s*\d+|[\+\-]\d+\s+([A-Za-z]+\s+)?(\s*armor\s+)?(bonus|penalty)|[\+\-]?\d+\s+AC|AC\s+\d+|(\d+,)?\d+\s+(cp|sp|gp|pp|rounds?|feet))")
     rangeOnly = re.compile(r".*? \((.*?)\)")
     splitSubschools = re.compile(r"\s+or\s+|,\s*")
+    snakeSigilSpecial = re.compile(r"(Abjuration|Conjuration|Enchantment|Evocation|Illusion|Necromancy|Transmutation):\s+(.+?)(?=\s*(Abjuration|Conjuration|Enchantment|Evocation|Illusion|Necromancy|Transmutation|$):?)")
     for row in rows:
         record = {}
         for key, cell in zip(first_row, row):
@@ -129,8 +131,6 @@ def readSpells(file):
             else:
                 record[key] = cell.value
 
-
-
         card = {}
         school = record["school"]
         card["school"] = school.capitalize() 
@@ -141,7 +141,7 @@ def readSpells(file):
             if record[c] == "NULL":
                 card[c] = None
             card[c] = record[c]
-        card["name"] = record["name"]
+        card["name"] = titlecase(record["name"])
 
         card["components_summary"] = details.sub('', record["components"])
         card["components"] = []
@@ -180,7 +180,21 @@ def readSpells(file):
         card["description"] = conditions(record["description"])
         card["source"] = record["source"]
 
-        cards.append(card.copy())
+        if card["name"] == "Lissalan Snake Sigil":
+            originalName = card["name"]
+            originalDescription = card["description"].replace("There are seven variants of this spell, one for each of the Thassilonian schools of magic. Each", "This spell")
+            originalDescription = snakeSigilSpecial.sub("", originalDescription)
+            for m in snakeSigilSpecial.finditer(card["description"]):
+                school = m.group(1)
+                description = m.group(2)
+                card["name"] = originalName + ", " + school
+                card["school"] = school
+                card["color"] = school_colors[school.lower()]
+                card["description"] = description + " " + originalDescription
+                cards[card["name"]] = card.copy()
+            continue
+
+        cards[card["name"]] = card.copy()
 
     print(dumps(cards, ensure_ascii=False))
 

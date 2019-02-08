@@ -47,7 +47,7 @@
       <div class="form-group">
         <label for="school" class="label">Spell schools</label><i v-if="filter.school.length > 0" @click="filter.school = []" class="fa fa-broom float-right clear"></i>
         <select id="school" class="form-control form-control-sm magic-school" v-model="filter.school" multiple :size="schools.size">
-          <option v-for="school in schools" :key="school" :value="school"><span class="magic-symbol" v-html="schoolToSymbol[school]"></span>&nbsp;{{school}}</option>
+          <option v-for="school in schools" :key="school" :value="school"><span class="magic-symbol" v-html="symbols[school]"></span>&nbsp;{{school}}</option>
         </select>
         <small>Use CTRL to select or unselect schools.</small>
       </div>
@@ -72,12 +72,12 @@
       </div>
     </form>
     <div :class="['spells', { 'spells-wide' : !filter.visible }]" >
-      <card v-for="card in filtered"
-        :key="card.title"
+      <card v-for="name in filtered"
+        :key="name"
         :mode="mode"
-        :card="card"
+        :card="spells[name]"
         :caster="spellbooks[activeSpellbook].kind"
-        @selection="spellbooks[activeSpellbook].cards.push($event)"></card>
+        @selection="spellbooks[activeSpellbook].spells.add(name)"></card>
     </div>
   </div>
   <div v-else :class="['center', { 'in-selection' : inSelection } ]">
@@ -89,6 +89,56 @@
 <script>
 import Card from './components/Card.vue'
 import Spells from './assets/spells.json'
+const SpellNames = Object.keys(Spells);
+const SpellSchools = new Set([...new Set(Object.values(Spells).map(spell => spell.school))].sort());
+const SpellSubschools = new Set([...new Set(Object.values(Spells).map(spell => spell.subschools).flat())].sort());
+const Casters = [
+  { kind: "sor", description: "Sorcerer" },
+  { kind: "wiz", description: "Wizard" },
+  { kind: "cleric", description: "Cleric" },
+  { kind: "druid", description: "Druid" },
+  { kind: "ranger", description: "Ranger" },
+  { kind: "bard", description: "Bard" },
+  { kind: "paladin", description: "Paladin" },
+  { kind: "alchemist", description: "Alchemist" },
+  { kind: "summoner", description: "Summoner" },
+  { kind: "summoner_unchained", description: "Summoner (unchained)" },
+  { kind: "witch", description: "Witch" },
+  { kind: "inquisitor", description: "Inquisitor" },
+  { kind: "oracle", description: "Oracle" },
+  { kind: "antipaladin", description: "Antipaladin" },
+  { kind: "magus", description: "Magus" },
+  { kind: "adept", description: "Adept" },
+  { kind: "bloodrager", description: "Bloodrager" },
+  { kind: "shaman", description: "Shaman" },
+  { kind: "psychic", description: "Psychic" },
+  { kind: "medium", description: "Medium" },
+  { kind: "mesmerist", description: "Mesmerist" },
+  { kind: "occultist", description: "Occultist" },
+  { kind: "spiritualist", description: "Spiritualist" },
+  { kind: "skald", description: "Skald" },
+  { kind: "investigator", description: "Investigator" },
+  { kind: "hunter", description: "Hunter" }
+];
+
+const SchoolSymbols = {
+  "Abjuration" : "&#xE000;",
+  "Conjuration" : "&#xE001;",
+  "Divination" : "&#xE002;",
+  "Enchantment" : "&#xE003;",
+  "Evocation" : "&#xE007;",
+  "Illusion" : "&#xE004;",
+  "Necromancy" : "&#xE005;",
+  "Transmutation" : "&#xE006;",
+  "Universal" : "&#xE008;",
+};
+const SpellComponents = [
+  { kind: "V", description: "Verbal" },
+  { kind: "S", description: "Somatic" },
+  { kind: "M", description: "Material" },
+  { kind: "F", description: "Focus" },
+  { kind: "DF", description: "Divine focus" },
+];
 
 var levenshtein = function(a, b) {
   if(a.length == 0) return b.length; 
@@ -134,56 +184,8 @@ export default {
   },
   data: function() {
     return {
-        cards: Spells,
         activeSpellbook: 0,
-        spellbooks: [ { id: 0, kind: "sor", description: "Sorcerer", cards: [] } ],
-        schoolToSymbol: {
-          "Abjuration" : "&#xE000;",
-          "Conjuration" : "&#xE001;",
-          "Divination" : "&#xE002;",
-          "Enchantment" : "&#xE003;",
-          "Evocation" : "&#xE007;",
-          "Illusion" : "&#xE004;",
-          "Necromancy" : "&#xE005;",
-          "See text" : "&#xE009;",
-          "Transmutation" : "&#xE006;",
-          "Universal" : "&#xE008;",
-        },
-        casters: [
-          { kind: "sor", description: "Sorcerer" },
-          { kind: "wiz", description: "Wizard" },
-          { kind: "cleric", description: "Cleric" },
-          { kind: "druid", description: "Druid" },
-          { kind: "ranger", description: "Ranger" },
-          { kind: "bard", description: "Bard" },
-          { kind: "paladin", description: "Paladin" },
-          { kind: "alchemist", description: "Alchemist" },
-          { kind: "summoner", description: "Summoner" },
-          { kind: "summoner_unchained", description: "Summoner (unchained)" },
-          { kind: "witch", description: "Witch" },
-          { kind: "inquisitor", description: "Inquisitor" },
-          { kind: "oracle", description: "Oracle" },
-          { kind: "antipaladin", description: "Antipaladin" },
-          { kind: "magus", description: "Magus" },
-          { kind: "adept", description: "Adept" },
-          { kind: "bloodrager", description: "Bloodrager" },
-          { kind: "shaman", description: "Shaman" },
-          { kind: "psychic", description: "Psychic" },
-          { kind: "medium", description: "Medium" },
-          { kind: "mesmerist", description: "Mesmerist" },
-          { kind: "occultist", description: "Occultist" },
-          { kind: "spiritualist", description: "Spiritualist" },
-          { kind: "skald", description: "Skald" },
-          { kind: "investigator", description: "Investigator" },
-          { kind: "hunter", description: "Hunter" },
-        ],
-        components: [
-          { kind: "V", description: "Verbal" },
-          { kind: "S", description: "Somatic" },
-          { kind: "M", description: "Material" },
-          { kind: "F", description: "Focus" },
-          { kind: "DF", description: "Divine focus" },
-        ],
+        spellbooks: [ { id: 0, kind: "sor", description: "Sorcerer", spells: new Set() } ],
         filter: {
           visible: true,
           name: "",
@@ -195,44 +197,46 @@ export default {
         },
         order: "level",
         inSelection: false,
-        mode: "browser",
+        mode: "browser"
     }
   },
+  persist: [ 'activeSpellbook', 'spellbooks', 'filter', 'order', 'inSelection', 'mode' ],
   computed: {
-    schools: function() {
-      return new Set([...new Set(this.cards.map(card => card.school))].sort());
-    },
-    subschools: function() {
-      return new Set([...new Set(this.cards.map(card => card.subschools).flat())].sort());
-    },
+    spells: () => Spells,
+    schools: () => SpellSchools,
+    subschools: () => SpellSubschools,
+    casters: () => Casters,
+    symbols: () => SchoolSymbols,
+    components: () => SpellComponents,
     filtered: function() {
-      var cards = this.mode == "book" ? this.spellbooks[this.activeSpellbook].cards : this.cards;
-      var filtered = cards.filter(card => {
-        var caster = this.spellbooks[this.activeSpellbook].kind;
-        return card[caster] != null
-          && (this.mode == "book" || (card[caster] >= this.filter.minLevel && card[caster] <= this.filter.maxLevel))
-          && (this.filter.school.length == 0 || this.filter.school.includes(card["school"]))
-          && (this.filter.subschool.length == 0 || [...this.filter.subschool].filter(s => card["subschools"].includes(s)).length > 0)
-          && (this.filter.components.length == 0 || (card["components"].length == this.filter.components.length && card["components"].every(s => this.filter.components.includes(s))))
+      const caster = this.spellbooks[this.activeSpellbook].kind;
+      const names = this.mode == "book" ? [...this.spellbooks[this.activeSpellbook].spells] : SpellNames;
+      var filtered = names.filter((key, index) => {
+        const spell = Spells[key];
+        return spell[caster] != null
+          && (this.mode == "book" || (spell[caster] >= this.filter.minLevel && spell[caster] <= this.filter.maxLevel))
+          && (this.filter.school.length == 0 || this.filter.school.includes(spell["school"]))
+          && (this.filter.subschool.length == 0 || [...this.filter.subschool].filter(s => spell["subschools"].includes(s)).length > 0)
+          && (this.filter.components.length == 0 || (spell["components"].length == this.filter.components.length && spell["components"].every(s => this.filter.components.includes(s))))
       });
 
       if (this.filter.name.length > 2) {
-        return filtered.map(card => { 
-          card.distance = levenshtein(this.filter.name, card.name)
-          return card
-        }).sort((a, b) => a.distance > b.distance)
+        return filtered.map(spell => { 
+          return { s: spell, d: levenshtein(this.filter.name, spell) }
+        }).sort((a, b) => a.d > b.d).map(spell => spell.s);
       } else {
         if (this.order == "name") {
           return filtered.sort((a, b) => {
-            if (a.name > b.name) return true;
-            if (a[this.filter.caster] > b[this.filter.caster]) return true;
+            if (a > b) return true;
             return false;
           })
         } else {
           return filtered.sort((a, b) => {
-            if (a[this.filter.caster] < b[this.filter.caster]) return false;
-            if (a.name < b.name) return false;
-            return true;
+            if (Spells[a][caster] < Spells[b][caster]) return -1;
+            if (Spells[a][caster] > Spells[b][caster]) return  1;
+            if (a > b) return 1;
+            if (a < b) return -1;
+            return 0;
           })
         }
       }
@@ -240,10 +244,10 @@ export default {
     }
   },
   methods: {
-    addSpellbook(card) {
-      var copy = Object.assign({}, card);
+    addSpellbook(caster) {
+      var copy = Object.assign({}, caster);
       copy.id = this.spellbooks.length;
-      copy.cards = [];
+      copy.spells = new Set();
       this.spellbooks.push(copy);
       this.activeSpellbook = copy.id;
       this.inSelection = false;
@@ -262,7 +266,6 @@ export default {
     font-weight: normal;
     font-style: normal;
 }
-
 
 @font-face {
   font-family: 'Open Sans';
