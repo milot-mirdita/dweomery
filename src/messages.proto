@@ -4,6 +4,8 @@ syntax = "proto3";
 message Spellbook {
     required int32 id = 0;
     required string caster = 1;
+    optional bool in_edit = 3 [default = false];
+    optional string name = 4;
     repeated int32 spells = 2;
 }
 message AppRoot {
@@ -19,4 +21,5 @@ message AppRoot {
     optional string order = 9;
     optional bool in_selection = 10 [default = false];
     optional bool in_browser = 11 [default = true];
+    optional bool search_similar = 12 [default = true];
 }

@@ -1,19 +1,42 @@
 <template>
 <div id="app">
   <nav :class="['navbar', 'navbar-expand-lg', 'navbar-light', 'bg-light', { 'fixed-top ' : inSelection } ]">
-    <a @click="visible = !visible" class="navbar-brand" v-if="inSelection == false"><i class="fas fa-bars"></i>&nbsp;Tiny Hut</a>
+    <a class="navbar-brand" v-if="inSelection == false">
+      <i v-if="spellbooks.length > 0" @click="visible = !visible" class="fas fa-bars"></i>&nbsp;Tiny Hut
+    </a>
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto" v-if="inSelection == false">
-        <li class="nav-item">
+        <li class="nav-item" v-if="spellbooks.length > 0">
           <a @click="inBrowser = false" class="nav-link" v-if="inBrowser"><i class="fa fa-book"></i>&nbsp;Go to spellbook</a>
           <a @click="inBrowser = true" class="nav-link" v-else><i class="fa fa-grip-horizontal"></i>&nbsp;Go to browser</a>
         </li>
         <li :class="['nav-item', { 'active' : activeSpellbook == book.id }]" v-for="book in spellbooks" :key="book.id">
-          <a @click="activeSpellbook = book.id" class="nav-link"><i :class="['far', { 'fa-dot-circle' : activeSpellbook == book.id }, { 'fa-circle' : activeSpellbook != book.id  } ]"></i>&nbsp;{{casters[book.caster]}}</a>
+          <a @click="activeSpellbook = book.id;" class="nav-link">
+            <div class="caster">
+              <template v-if="book.inEdit == false">
+                <i @click="book.inEdit = (activeSpellbook == book.id) ? true : book.inEdit;"
+                  class="caster-icon" :class="{ 'active' : activeSpellbook == book.id }"></i>
+                {{ book.name }}
+              </template>
+              <form v-else class="form-inline">
+                <div class="input-group input-group-sm">
+                  <div class="input-group-prepend">
+                    <span @click="book.inEdit = false" class="input-group-text"><i class="far fa-check-circle"></i></span>
+                  </div>
+                  <input type="text" class="form-control form-control-sm" placeholder="Spell Name" v-model="book.name">
+                   <div class="input-group-append">
+                    <span @click.stop="removeSpellbook(book.id)" class="input-group-text"><i class="far fa-trash-alt"></i></span>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </a>
         </li>
         <li class="nav-item">
-          <a @click="inSelection = true" class="nav-link"><i class="fa fa-plus-circle"></i></a>
+          <a @click="inSelection = true" class="nav-link">
+            <i class="fa fa-plus-circle"></i>
+          </a>
         </li>
       </ul>
       <ul class="navbar-nav mr-auto caster-selection" v-else>
@@ -30,7 +53,12 @@
     <form class="filter" v-if="visible">
       <div class="form-group">
         <label for="spell-name" class="label">Search for spell</label>
+        <div class="input-group input-group-sm">
         <input id="spell-name" class="form-control form-control-sm" v-model="name" />
+          <div class="input-group-append">
+            <span @click="searchSimilar = !searchSimilar" class="input-group-text"><i :class="['fa', 'fa-fw', searchSimilar ? 'fa-search' : 'fa-equals' ]"></i></span>
+          </div>
+        </div>
       </div>
       <div class="form-group" v-if="inBrowser">
       <div class="input-group input-group-sm">
@@ -61,7 +89,7 @@
         </select>
       </div>
       <div class="form-group">
-        <label for="sort" class="label">Sort order</label>
+        <label for="sort" class="label">Order by</label>
         <select v-model="order" :disabled="name.length > 0" id="sort" class="form-control form-control-sm">
           <option value="name">Name</option>
           <option value="level">Level</option>
@@ -79,7 +107,7 @@
     </div>
   </div>
   <div v-else :class="['center', { 'in-selection' : inSelection } ]">
-    Add a class with the plus button
+    Add a spellbook with the&nbsp;<a @click="inSelection = true"><i class="fa fa-plus-circle"><span class="sr-only">plus</span></i></a>&nbsp;button.
   </div>
 </div>
 </template>
@@ -139,7 +167,7 @@ const SpellComponents = [
   { kind: "DF", description: "Divine focus" },
 ];
 
-var levenshtein = function(a, b) {
+var smithWaterman = function(a, b) {
   if(a.length == 0) return b.length; 
   if(b.length == 0) return a.length;
 
@@ -162,19 +190,19 @@ var levenshtein = function(a, b) {
     for(var j = 1; j <= a.length; j++){
       var val;
       if(b.charAt(i-1) == a.charAt(j-1)){
-        val = row[j-1] - 1; // match
+        val = row[j-1] + 3; // match
       } else {
-        val = Math.min(row[j-1] + 1,  // substitution
-              Math.min(prev + 1,      // insertion
-                       row[j] + 0));  // deletion
+        val = Math.max(0,
+              Math.max(row[j-1] - 1,  // substitution
+              Math.max(prev - 1,      // insertion
+                       row[j] - 1)));  // deletion
       }
       row[j - 1] = prev;
       prev = val;
     }
     row[a.length] = prev;
   }
-
-  return row[a.length];
+  return Math.max(...row);
 }
 
 import { SpellCard } from './proto'
@@ -186,8 +214,8 @@ export default {
   },
   data: function() {
     return {
-        activeSpellbook: 0,
-        spellbooks: [ { id: 0, caster: "sor", spells: [] } ],
+        activeSpellbook: -1,
+        spellbooks: [ { id: 0, caster: "sor", inEdit: false, spells: [] } ],
         visible: true,
         name: "",
         minLevel: 0,
@@ -197,7 +225,8 @@ export default {
         component: [],
         order: "level",
         inSelection: false,
-        inBrowser: true
+        inBrowser: true,
+        searchSimilar: true
     }
   },
   created() {
@@ -212,7 +241,7 @@ export default {
       'activeSpellbook', 'spellbooks', 'visible',
       'name', 'minLevel', 'maxLevel',
       'school', 'subschool', 'component',
-      'order', 'inSelection', 'inBrowser'
+      'order', 'inSelection', 'inBrowser', 'searchSimilar'
     ];
     for (const name of names) {
         if (typeof store[name] !== 'undefined') {
@@ -225,6 +254,7 @@ export default {
           this.$watch(name, val => {
             store[name] = val;
             let message = SpellCard.AppRoot.create(store);
+            console.log(message);
             let buffer = SpellCard.AppRoot.encode(message).finish();
             history.replaceState('', '', '#' + encode(buffer, 0, buffer.length));
           }, { deep: true });
@@ -238,8 +268,11 @@ export default {
     casters: () => Casters,
     symbols: () => SchoolSymbols,
     components: () => SpellComponents,
-    currentSpellbook: function() { return this.spellbooks[this.activeSpellbook]; },
+    currentSpellbook: function() { return this.activeSpellbook >= 0 ? this.spellbooks[this.activeSpellbook] : null; },
     filtered: function() {
+      if (this.activeSpellbook == -1) {
+        return {};
+      }
       const caster = this.currentSpellbook.caster;
       const names = this.inBrowser ? SpellNames : [...this.currentSpellbook.spells];
       var filtered = names.filter((key, index) => {
@@ -251,23 +284,37 @@ export default {
           && (this.component.length == 0 || (spell["components"].length == this.component.length && spell["components"].every(s => this.component.includes(s))))
       });
 
-      if (this.name.length > 2) {
-        return filtered.map(spell => { 
-          return { s: spell, d: levenshtein(this.name, spell) }
-        }).sort((a, b) => a.d > b.d).map(spell => spell.s);
+      if (this.name.length > 0) {
+        const search = this.name.toLowerCase();
+        if (this.name.length > 2 && this.searchSimilar) {
+          return filtered.map(id => { 
+            const res = { s: id, d: smithWaterman(search, Spells[id].name.toLowerCase()) };
+            return res;
+          }).sort((a, b) => {
+            return +(a.d < b.d) || +(a.d === b.d) - 1;
+          }).filter(spell => spell.d > 2).map(spell => spell.s);
+        } else {
+          return filtered.filter(id => {
+            return Spells[id].name.toLowerCase().startsWith(search);
+          })
+        }
       } else {
         if (this.order == "name") {
           return filtered.sort((a, b) => {
-            if (a > b) return true;
-            return false;
+            if (Spells[a].name < Spells[b].name)
+              return -1;
+            return 1;
           })
         } else {
           return filtered.sort((a, b) => {
-            if (Spells[a][caster] < Spells[b][caster]) return -1;
-            if (Spells[a][caster] > Spells[b][caster]) return  1;
-            if (a > b) return 1;
-            if (a < b) return -1;
-            return 0;
+            if (Spells[a][caster] === Spells[b][caster]) {
+              if (Spells[a].name < Spells[b].name)
+                return -1;
+              return 1;
+            }
+            if (Spells[a][caster] < Spells[b][caster])
+              return -1;
+            return 1;
           })
         }
       }
@@ -280,9 +327,19 @@ export default {
       this.spellbooks.push({
         id: id,
         caster: caster,
+        inEdit: false,
+        name: this.casters[caster],
         spells: []
       });
       this.activeSpellbook = id;
+      this.inSelection = false;
+    },
+    removeSpellbook(id) {
+      this.spellbooks = this.spellbooks.filter((book) => {
+        return book.id != id;
+      });
+      this.activeSpellbook = -1;
+      this.inBrowser = false;
       this.inSelection = false;
     },
     addSpellToSpellbook(spell) {
@@ -335,6 +392,11 @@ export default {
 // @import "~bootstrap/scss/spinners";
 @import "~bootstrap/scss/utilities";
 @import "~bootstrap/scss/print";
+
+$fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
+@import "~@fortawesome/fontawesome-free/scss/fontawesome";
+@import "~@fortawesome/fontawesome-free/scss/regular";
+@import "~@fortawesome/fontawesome-free/scss/solid";
 
 @font-face {
     font-family: 'DnDMagicSchools';
@@ -414,6 +476,7 @@ export default {
     }
   }
 }
+
 .filter {
   display: flex;
   flex-direction: column;
@@ -433,10 +496,21 @@ export default {
     width: 100vw;
   }
 }
+
+@media print {
+  .filter {
+    display: none;
+  }
+  .spells {
+    width: 100%;
+  }
+}
+
 .navbar {
   a {
     cursor: pointer;
   }
+
   .caster-selection {
     flex-wrap: wrap;
     justify-content: center;
@@ -444,6 +518,32 @@ export default {
     a {
       font-family: 'PT Sans Narrow', sans-serif;
       white-space: nowrap;
+    }
+  }
+  .caster {
+    position: relative;
+    display: inline-block;
+    .form-inline {
+      display: inline-block;
+      margin-top: -10px;
+    }
+    .form-control, .input-group-text {
+      height: 1.5em;
+    }
+  }
+
+  .caster-icon {
+    @extend .far;
+    @extend .fa-fw;
+    @extend .fa-circle;
+    &.active {
+      @extend .fa-dot-circle;
+      &:hover {
+        @extend .fa-edit;
+      }
+    }
+    &.edit {
+      @extend .fa-check-circle;
     }
   }
 }
