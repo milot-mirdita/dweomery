@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "build": "webpack -p --progress --hide-modules  --colors --config ./webpack.config.js",
-    "serve": "webpack-dev-server --mode development --open --inline --hot --content-base dist/ --config ./webpack.config.js"
+    "serve": "webpack-dev-server --mode development --open --inline --hot --content-base dist/ --config ./webpack.config.js",
+    "proto": "pbjs -t static-module -w es6 -o src/proto.js src/messages.proto",
+    "stats": "webpack --profile --json > dist/compilation-stats.json"
   },
   "dependencies": {
     "register-service-worker": "^1.5.2",
@@ -28,9 +30,9 @@
     "node-sass": "^4.11.0",
     "postcss-loader": "^3.0.0",
     "postcss-preset-env": "^6.5.0",
+    "protobufjs": "~6.8.8",
     "sass-loader": "^7.1.0",
     "vue-loader": "^15.6.2",
-    "vue-persist": "^0.4.0",
     "vue-style-loader": "^4.1.2",
     "vue-template-compiler": "^2.6.3",
     "webpack": "^4.29.2",

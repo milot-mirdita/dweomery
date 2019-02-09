@@ -1,0 +1,22 @@
+package SpellCard;
+syntax = "proto3";
+
+message Spellbook {
+    required int32 id = 0;
+    required string caster = 1;
+    repeated int32 spells = 2;
+}
+message AppRoot {
+    optional int32 active_spellbook = 0 [default = -1];
+    repeated Spellbook spellbooks = 1;
+    optional bool visible = 2 [default = true];
+    optional string name = 3;
+    optional int32 min_level = 4;
+    optional int32 max_level = 5;
+    repeated string school = 6;
+    repeated string subschool = 7;
+    repeated string component = 8;
+    optional string order = 9;
+    optional bool in_selection = 10 [default = false];
+    optional bool in_browser = 11 [default = true];
+}

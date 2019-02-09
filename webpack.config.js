@@ -7,9 +7,6 @@ const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const PostcssPresetEnvPlugin = require('postcss-preset-env');
 
-function NullPlugin() { }
-NullPlugin.prototype.apply = function () { };
-
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production';
 

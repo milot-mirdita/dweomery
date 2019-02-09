@@ -141,6 +141,7 @@ def readSpells(file):
             if record[c] == "NULL":
                 card[c] = None
             card[c] = record[c]
+        card["id"] = int(record["id"])
         card["name"] = titlecase(record["name"])
 
         card["components_summary"] = details.sub('', record["components"])
@@ -191,10 +192,10 @@ def readSpells(file):
                 card["school"] = school
                 card["color"] = school_colors[school.lower()]
                 card["description"] = description + " " + originalDescription
-                cards[card["name"]] = card.copy()
+                cards[card["id"]] = card.copy()
             continue
 
-        cards[card["name"]] = card.copy()
+        cards[card["id"]] = card.copy()
 
     print(dumps(cards, ensure_ascii=False))
 

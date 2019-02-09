@@ -1,19 +1,16 @@
 <template>
 <div id="app">
   <nav :class="['navbar', 'navbar-expand-lg', 'navbar-light', 'bg-light', { 'fixed-top ' : inSelection } ]">
-    <a @click="filter.visible = !filter.visible" class="navbar-brand" href="#" v-if="inSelection == false"><i class="fas fa-bars"></i>&nbsp;Tiny Hut</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+    <a @click="visible = !visible" class="navbar-brand" v-if="inSelection == false"><i class="fas fa-bars"></i>&nbsp;Tiny Hut</a>
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto" v-if="inSelection == false">
         <li class="nav-item">
-          <a @click="mode = 'book'" class="nav-link" v-if="mode == 'browser'"><i class="fa fa-book"></i>&nbsp;Go to spellbook</a>
-          <a @click="mode = 'browser'" class="nav-link" v-else><i class="fa fa-grip-horizontal"></i>&nbsp;Go to browser</a>
+          <a @click="inBrowser = false" class="nav-link" v-if="inBrowser"><i class="fa fa-book"></i>&nbsp;Go to spellbook</a>
+          <a @click="inBrowser = true" class="nav-link" v-else><i class="fa fa-grip-horizontal"></i>&nbsp;Go to browser</a>
         </li>
         <li :class="['nav-item', { 'active' : activeSpellbook == book.id }]" v-for="book in spellbooks" :key="book.id">
-          <a @click="activeSpellbook = book.id" class="nav-link"><i :class="['far', { 'fa-dot-circle' : activeSpellbook == book.id }, { 'fa-circle' : activeSpellbook != book.id  } ]"></i>&nbsp;{{book.description}}</a>
+          <a @click="activeSpellbook = book.id" class="nav-link"><i :class="['far', { 'fa-dot-circle' : activeSpellbook == book.id }, { 'fa-circle' : activeSpellbook != book.id  } ]"></i>&nbsp;{{casters[book.caster]}}</a>
         </li>
         <li class="nav-item">
           <a @click="inSelection = true" class="nav-link"><i class="fa fa-plus-circle"></i></a>
@@ -23,61 +20,62 @@
         <li class="nav-item">
           <a @click="inSelection = false" class="nav-link"><i class="fa fa-stop-circle"></i></a>
         </li>
-        <li class="nav-item" v-for="caster in casters" :key="caster.kind">
-          <a @click="addSpellbook(caster)" class="nav-link">{{caster.description}}</a>
+        <li class="nav-item" v-for="(value, key) in casters" :key="key">
+          <a @click="addSpellbook(key)" class="nav-link">{{value}}</a>
         </li>
       </ul>
     </div>
   </nav>
   <div :class="['browser', { 'in-selection' : inSelection } ]" v-if="activeSpellbook > -1">
-    <form class="filter" v-if="filter.visible">
+    <form class="filter" v-if="visible">
       <div class="form-group">
-        <label for="spell-name" class="label">Name</label>
-        <input id="spell-name" class="form-control form-control-sm" v-model="filter.name" />
+        <label for="spell-name" class="label">Search for spell</label>
+        <input id="spell-name" class="form-control form-control-sm" v-model="name" />
       </div>
-      <div class="form-group" v-if="mode == 'browser'">
+      <div class="form-group" v-if="inBrowser">
       <div class="input-group input-group-sm">
         <div class="input-group-prepend">
           <span class="input-group-text">Level</span>
         </div>
-        <input class="form-control form-control-sm" type="number" min="0" max="9" v-model="filter.minLevel" />
-        <input class="form-control form-control-sm" type="number" min="0" max="9" v-model="filter.maxLevel" />
+        <input class="form-control form-control-sm" type="number" min="0" :max="maxLevel" v-model="minLevel" />
+        <input class="form-control form-control-sm" type="number" :min="minLevel" max="9" v-model="maxLevel" />
       </div>
       </div>
       <div class="form-group">
-        <label for="school" class="label">Spell schools</label><i v-if="filter.school.length > 0" @click="filter.school = []" class="fa fa-broom float-right clear"></i>
-        <select id="school" class="form-control form-control-sm magic-school" v-model="filter.school" multiple :size="schools.size">
+        <label for="school" class="label">Spell schools</label><i v-if="school.length > 0" @click="school = []" class="fa fa-broom float-right clear"></i>
+        <select id="school" class="form-control form-control-sm magic-school" v-model="school" multiple :size="schools.size">
           <option v-for="school in schools" :key="school" :value="school"><span class="magic-symbol" v-html="symbols[school]"></span>&nbsp;{{school}}</option>
         </select>
-        <small>Use CTRL to select or unselect schools.</small>
+        <small>Use CTRL to select multiple schools.</small>
       </div>
       <div class="form-group">
-        <label for="subschool" class="label">Subschools</label><i v-if="filter.subschool.length > 0" @click="filter.subschool = []" class="fa fa-broom float-right clear"></i>
-        <select id="subschool" class="form-control form-control-sm" v-model="filter.subschool" multiple :size="4">
+        <label for="subschool" class="label">Subschools</label><i v-if="subschool.length > 0" @click="subschool = []" class="fa fa-broom float-right clear"></i>
+        <select id="subschool" class="form-control form-control-sm" v-model="subschool" multiple :size="4">
           <option v-for="school in subschools" :key="school">{{school}}</option>
         </select>
       </div>
       <div class="form-group">
-        <label for="components" class="label">Components</label><i v-if="filter.components.length > 0" @click="filter.components = []" class="fa fa-broom float-right clear"></i>
-        <select v-model="filter.components" id="components" class="form-control form-control-sm" multiple size="5">
+        <label for="components" class="label">Components</label><i v-if="component.length > 0" @click="component = []" class="fa fa-broom float-right clear"></i>
+        <select v-model="component" id="components" class="form-control form-control-sm" multiple size="5">
           <option v-for="c in components" :key="c.kind" :value="c.kind">{{c.description}}</option>
         </select>
       </div>
       <div class="form-group">
         <label for="sort" class="label">Sort order</label>
-        <select v-model="order" :disabled="filter.name.length > 0" id="sort" class="form-control form-control-sm">
+        <select v-model="order" :disabled="name.length > 0" id="sort" class="form-control form-control-sm">
           <option value="name">Name</option>
           <option value="level">Level</option>
         </select>
       </div>
     </form>
-    <div :class="['spells', { 'spells-wide' : !filter.visible }]" >
+    <div :class="['spells', { 'spells-wide' : !visible }]" >
       <card v-for="name in filtered"
         :key="name"
-        :mode="mode"
+        :in-browser="inBrowser"
         :card="spells[name]"
-        :caster="spellbooks[activeSpellbook].kind"
-        @selection="spellbooks[activeSpellbook].spells.add(name)"></card>
+        :caster="currentSpellbook.caster"
+        :known-spells="currentSpellbook.spells"
+        @selection="addSpellToSpellbook(name)"></card>
     </div>
   </div>
   <div v-else :class="['center', { 'in-selection' : inSelection } ]">
@@ -89,37 +87,38 @@
 <script>
 import Card from './components/Card.vue'
 import Spells from './assets/spells.json'
+// const Spells = {};
 const SpellNames = Object.keys(Spells);
 const SpellSchools = new Set([...new Set(Object.values(Spells).map(spell => spell.school))].sort());
 const SpellSubschools = new Set([...new Set(Object.values(Spells).map(spell => spell.subschools).flat())].sort());
-const Casters = [
-  { kind: "sor", description: "Sorcerer" },
-  { kind: "wiz", description: "Wizard" },
-  { kind: "cleric", description: "Cleric" },
-  { kind: "druid", description: "Druid" },
-  { kind: "ranger", description: "Ranger" },
-  { kind: "bard", description: "Bard" },
-  { kind: "paladin", description: "Paladin" },
-  { kind: "alchemist", description: "Alchemist" },
-  { kind: "summoner", description: "Summoner" },
-  { kind: "summoner_unchained", description: "Summoner (unchained)" },
-  { kind: "witch", description: "Witch" },
-  { kind: "inquisitor", description: "Inquisitor" },
-  { kind: "oracle", description: "Oracle" },
-  { kind: "antipaladin", description: "Antipaladin" },
-  { kind: "magus", description: "Magus" },
-  { kind: "adept", description: "Adept" },
-  { kind: "bloodrager", description: "Bloodrager" },
-  { kind: "shaman", description: "Shaman" },
-  { kind: "psychic", description: "Psychic" },
-  { kind: "medium", description: "Medium" },
-  { kind: "mesmerist", description: "Mesmerist" },
-  { kind: "occultist", description: "Occultist" },
-  { kind: "spiritualist", description: "Spiritualist" },
-  { kind: "skald", description: "Skald" },
-  { kind: "investigator", description: "Investigator" },
-  { kind: "hunter", description: "Hunter" }
-];
+const Casters = {
+  "sor" : "Sorcerer",
+  "wiz" : "Wizard",
+  "cleric" : "Cleric",
+  "druid" : "Druid",
+  "ranger" : "Ranger",
+  "bard" : "Bard",
+  "paladin" : "Paladin",
+  "alchemist" : "Alchemist",
+  "summoner" : "Summoner",
+  "summoner_unchained" : "Summoner (unchained)",
+  "witch" : "Witch",
+  "inquisitor" : "Inquisitor",
+  "oracle" : "Oracle",
+  "antipaladin" : "Antipaladin",
+  "magus" : "Magus",
+  "adept" : "Adept",
+  "bloodrager" : "Bloodrager",
+  "shaman" : "Shaman",
+  "psychic" : "Psychic",
+  "medium" : "Medium",
+  "mesmerist" : "Mesmerist",
+  "occultist" : "Occultist",
+  "spiritualist" : "Spiritualist",
+  "skald" : "Skald",
+  "investigator" : "Investigator",
+  "hunter" : "Hunter",
+};
 
 const SchoolSymbols = {
   "Abjuration" : "&#xE000;",
@@ -178,6 +177,9 @@ var levenshtein = function(a, b) {
   return row[a.length];
 }
 
+import { SpellCard } from './proto'
+import { length, encode, decode } from '@protobufjs/base64'
+
 export default {
   components: {
     Card
@@ -185,22 +187,50 @@ export default {
   data: function() {
     return {
         activeSpellbook: 0,
-        spellbooks: [ { id: 0, kind: "sor", description: "Sorcerer", spells: new Set() } ],
-        filter: {
-          visible: true,
-          name: "",
-          minLevel: 0,
-          maxLevel: 0,
-          school: [],
-          subschool: [],
-          components: [],
-        },
+        spellbooks: [ { id: 0, caster: "sor", spells: [] } ],
+        visible: true,
+        name: "",
+        minLevel: 0,
+        maxLevel: 0,
+        school: [],
+        subschool: [],
+        component: [],
         order: "level",
         inSelection: false,
-        mode: "browser"
+        inBrowser: true
     }
   },
-  persist: [ 'activeSpellbook', 'spellbooks', 'filter', 'order', 'inSelection', 'mode' ],
+  created() {
+    const hash = window.location.hash.substr(1);
+    var buffer = new Uint8Array(length(hash))
+    decode(hash, buffer, 0)
+    let store = SpellCard.AppRoot.decode(buffer);
+
+    this._persistWatchers = this._persistWatchers || []
+
+    const names = [ 
+      'activeSpellbook', 'spellbooks', 'visible',
+      'name', 'minLevel', 'maxLevel',
+      'school', 'subschool', 'component',
+      'order', 'inSelection', 'inBrowser'
+    ];
+    for (const name of names) {
+        if (typeof store[name] !== 'undefined') {
+          this[name] = store[name]
+        }
+
+        if (this._persistWatchers.indexOf(name) === -1) {
+          this._persistWatchers.push(name)
+
+          this.$watch(name, val => {
+            store[name] = val;
+            let message = SpellCard.AppRoot.create(store);
+            let buffer = SpellCard.AppRoot.encode(message).finish();
+            history.replaceState('', '', '#' + encode(buffer, 0, buffer.length));
+          }, { deep: true });
+        }
+    }
+  },
   computed: {
     spells: () => Spells,
     schools: () => SpellSchools,
@@ -208,21 +238,22 @@ export default {
     casters: () => Casters,
     symbols: () => SchoolSymbols,
     components: () => SpellComponents,
+    currentSpellbook: function() { return this.spellbooks[this.activeSpellbook]; },
     filtered: function() {
-      const caster = this.spellbooks[this.activeSpellbook].kind;
-      const names = this.mode == "book" ? [...this.spellbooks[this.activeSpellbook].spells] : SpellNames;
+      const caster = this.currentSpellbook.caster;
+      const names = this.inBrowser ? SpellNames : [...this.currentSpellbook.spells];
       var filtered = names.filter((key, index) => {
         const spell = Spells[key];
         return spell[caster] != null
-          && (this.mode == "book" || (spell[caster] >= this.filter.minLevel && spell[caster] <= this.filter.maxLevel))
-          && (this.filter.school.length == 0 || this.filter.school.includes(spell["school"]))
-          && (this.filter.subschool.length == 0 || [...this.filter.subschool].filter(s => spell["subschools"].includes(s)).length > 0)
-          && (this.filter.components.length == 0 || (spell["components"].length == this.filter.components.length && spell["components"].every(s => this.filter.components.includes(s))))
+          && (!this.inBrowser || (spell[caster] >= this.minLevel && spell[caster] <= this.maxLevel))
+          && (this.school.length == 0 || this.school.includes(spell["school"]))
+          && (this.subschool.length == 0 || [...this.subschool].filter(s => spell["subschools"].includes(s)).length > 0)
+          && (this.component.length == 0 || (spell["components"].length == this.component.length && spell["components"].every(s => this.component.includes(s))))
       });
 
-      if (this.filter.name.length > 2) {
+      if (this.name.length > 2) {
         return filtered.map(spell => { 
-          return { s: spell, d: levenshtein(this.filter.name, spell) }
+          return { s: spell, d: levenshtein(this.name, spell) }
         }).sort((a, b) => a.d > b.d).map(spell => spell.s);
       } else {
         if (this.order == "name") {
@@ -245,19 +276,65 @@ export default {
   },
   methods: {
     addSpellbook(caster) {
-      var copy = Object.assign({}, caster);
-      copy.id = this.spellbooks.length;
-      copy.spells = new Set();
-      this.spellbooks.push(copy);
-      this.activeSpellbook = copy.id;
+      const id = this.spellbooks.length;
+      this.spellbooks.push({
+        id: id,
+        caster: caster,
+        spells: []
+      });
+      this.activeSpellbook = id;
       this.inSelection = false;
+    },
+    addSpellToSpellbook(spell) {
+      const index = this.currentSpellbook.spells.indexOf(spell | 0);
+      if (index > -1) {
+        this.currentSpellbook.spells.splice(index, 1);
+      } else {
+        this.currentSpellbook.spells.push(spell | 0)
+      }
     }
   }
 }
 </script>
 
 <style lang="sass">
-@import "~bootstrap/scss/bootstrap";
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/mixins";
+// @import "~bootstrap/scss/root";
+@import "~bootstrap/scss/reboot";
+// @import "~bootstrap/scss/type";
+// @import "~bootstrap/scss/images";
+// @import "~bootstrap/scss/code";
+// @import "~bootstrap/scss/grid";
+// @import "~bootstrap/scss/tables";
+@import "~bootstrap/scss/forms";
+@import "~bootstrap/scss/buttons";
+// @import "~bootstrap/scss/transitions";
+// @import "~bootstrap/scss/dropdown";
+// @import "~bootstrap/scss/button-group";
+@import "~bootstrap/scss/input-group";
+// @import "~bootstrap/scss/custom-forms";
+@import "~bootstrap/scss/nav";
+@import "~bootstrap/scss/navbar";
+// @import "~bootstrap/scss/card";
+// @import "~bootstrap/scss/breadcrumb";
+// @import "~bootstrap/scss/pagination";
+// @import "~bootstrap/scss/badge";
+// @import "~bootstrap/scss/jumbotron";
+// @import "~bootstrap/scss/alert";
+// @import "~bootstrap/scss/progress";
+// @import "~bootstrap/scss/media";
+// @import "~bootstrap/scss/list-group";
+// @import "~bootstrap/scss/close";
+// @import "~bootstrap/scss/toasts";
+// @import "~bootstrap/scss/modal";
+// @import "~bootstrap/scss/tooltip";
+// @import "~bootstrap/scss/popover";
+// @import "~bootstrap/scss/carousel";
+// @import "~bootstrap/scss/spinners";
+@import "~bootstrap/scss/utilities";
+@import "~bootstrap/scss/print";
 
 @font-face {
     font-family: 'DnDMagicSchools';
@@ -323,16 +400,25 @@ export default {
   margin-top: 56px;
 }
 
+@include media-breakpoint-down(sm) { 
+  .browser {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .filter {
+      width: 100%;
+    }
+
+    .spells {
+      width: 100%;
+    }
+  }
+}
 .filter {
   display: flex;
   flex-direction: column;
-  width: 20vw;
+  width: 275px;
   padding: 10px;
-}
-@media print {
-  .spells {
-    justify-content: flex-start !important;
-  }
 }
 
 .spells {
@@ -340,7 +426,7 @@ export default {
   width: 80vw;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   align-self: flex-start;
 
   &.spells-wide {

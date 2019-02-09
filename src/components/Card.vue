@@ -2,7 +2,7 @@
   <div class="card" :style="{ borderColor : card.color }">
     <div class="level">{{ card[caster] }}</div>
     <div class="card-inner">
-      <h1 v-if="mode=='browser'"><a @click="$emit('selection', card)">{{ card.name }}<template v-if="false">&nbsp;<i class="fas fa-book"></i></template></a></h1>
+      <h1 v-if="inBrowser"><a @click="$emit('selection')">{{ card.name }}<template v-if="knownSpells.includes(card.id)">&nbsp;<i class="fa fa-book text-muted"></i></template></a></h1>
       <h1 v-else>{{ card.name }}</h1>
       <hr :style="{ borderColor : card.color }" />
       <div>
@@ -20,10 +20,10 @@
           <strong>D</strong>&thinsp;{{card.duration}}
         </span>
         <span v-if="card.saving_throw">
-          <strong>S</strong>&thinsp;<span v-html="card.saving_throw"></span>
+          <strong :class="{ 'strike-out' : (card.saving_throw == 'no') }">S</strong>&thinsp;<span :class="{ 'sr-only' : card.saving_throw == 'no' }" v-html="card.saving_throw"></span>&thinsp;
         </span>
         <span v-if="card.resistance">
-          <strong>X</strong>&thinsp;<span v-html="card.resistance"></span>
+          <strong :class="{ 'strike-out' : (card.resistance == 'no') }">X</strong>&thinsp;<span :class="{ 'sr-only' : card.resistance == 'no' }" v-html="card.resistance"></span>&thinsp;
         </span>
         <span v-for="a in card.area_targets" :key="a.kind">
             <strong>{{a.kind}}</strong>&thinsp;<span v-html="a.description"></span>
@@ -50,9 +50,10 @@ export default {
   props: {
     card: Object,
     caster: String,
-    mode: {
-      type: String,
-      default: "select"
+    inBrowser: Boolean,
+    knownSpells: {
+      type: Array,
+      default: []
     }
   }
 }
@@ -122,18 +123,35 @@ export default {
     .summary {
       clear:both;
       margin-top:1mm;
-      font-family: 'PT Sans Narrow', 'BenchNine', sans-serif;
+      font-family: 'PT Sans Narrow', sans-serif;
       text-align: justify;
       width: 100%;
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       flex-shrink: 0;
+
+      .strike-out {
+        position: relative;
+        display: inline-box;
+
+        &:before {
+          position: absolute;
+          content: "";
+          left: -3px;
+          top: 45%;
+          right: -3px;
+          border-top: 2px solid #555;
+
+          transform:rotate(-30deg);
+        }
+      }
     }
 
     .text {
       text-align: justify;
-      overflow: scroll;
+      overflow-y: scroll;
+      overflow-x: hidden;
       max-height: 100%;
     }
   }
