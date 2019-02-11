@@ -359,7 +359,9 @@ export default {
 @import "~bootstrap/scss/variables";
 @import "~bootstrap/scss/mixins";
 // @import "~bootstrap/scss/root";
+@media screen {
 @import "~bootstrap/scss/reboot";
+}
 // @import "~bootstrap/scss/type";
 // @import "~bootstrap/scss/images";
 // @import "~bootstrap/scss/code";
@@ -498,10 +500,14 @@ $fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
 }
 
 @media print {
-  .filter {
+  .browser {
+    display: block;
+  }
+  nav, .filter {
     display: none;
   }
   .spells {
+    display: table;
     width: 100%;
   }
 }

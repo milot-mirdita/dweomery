@@ -72,6 +72,11 @@ export default {
   margin: 5px;
   padding: 1mm 1.5mm;
 
+  @media print {
+    display: inline-block;
+    page-break-inside: avoid;
+  }
+
   .level {
       position: absolute;
       top: -0.75mm;
@@ -153,6 +158,10 @@ export default {
       overflow-y: scroll;
       overflow-x: hidden;
       max-height: 100%;
+    }
+
+    @media print {
+      overflow: hidden;
     }
   }
 }
