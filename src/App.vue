@@ -4,7 +4,6 @@
     <a class="navbar-brand" v-if="inSelection == false">
       <i v-if="spellbooks.length > 0" @click="visible = !visible" class="fas fa-bars"></i>&nbsp;Tiny Hut
     </a>
-
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto" v-if="inSelection == false">
         <li class="nav-item" v-if="spellbooks.length > 0">
@@ -47,19 +46,25 @@
           <a @click="addSpellbook(key)" class="nav-link">{{value}}</a>
         </li>
       </ul>
+      <form class="form-inline">
+        <button
+          title="Sourcebooks"
+          @click="activeSpellbook = -2"
+          :class="['btn', 'btn-sm', activeSpellbook == -2 ? 'btn-secondary' : 'btn-outline-secondary', 'mr-1']"
+          type="submit">
+            <i class="fa fa-boxes"></i>
+        </button>
+        <div class="input-group input-group-sm">
+        <input class="form-control form-control-sm" v-model="name" placeholder="Spellname" type="text" />
+        <div class="input-group-append">
+          <span @click="searchSimilar = !searchSimilar" class="input-group-text"><i :class="['fa', 'fa-fw', searchSimilar ? 'fa-search' : 'fa-equals' ]"></i></span>
+        </div>
+      </div>
+    </form>
     </div>
   </nav>
   <div :class="['browser', { 'in-selection' : inSelection } ]" v-if="activeSpellbook > -1">
     <form class="filter" v-if="visible">
-      <div class="form-group">
-        <label for="spell-name" class="label">Search for spell</label>
-        <div class="input-group input-group-sm">
-        <input id="spell-name" class="form-control form-control-sm" v-model="name" />
-          <div class="input-group-append">
-            <span @click="searchSimilar = !searchSimilar" class="input-group-text"><i :class="['fa', 'fa-fw', searchSimilar ? 'fa-search' : 'fa-equals' ]"></i></span>
-          </div>
-        </div>
-      </div>
       <div class="form-group" v-if="inBrowser">
       <div class="input-group input-group-sm">
         <div class="input-group-prepend">
@@ -106,6 +111,13 @@
         @selection="addSpellToSpellbook(name)"></card>
     </div>
   </div>
+  <div
+    v-else-if="activeSpellbook == -2"
+    class="center">
+    <ul>
+      <li v-for="(book, key) in sourcebooks" :key="key">{{book}}</li>
+    </ul>
+  </div>
   <div v-else :class="['center', { 'in-selection' : inSelection } ]">
     Add a spellbook with the&nbsp;<a @click="inSelection = true"><i class="fa fa-plus-circle"><span class="sr-only">plus</span></i></a>&nbsp;button.
   </div>
@@ -114,11 +126,14 @@
 
 <script>
 import Card from './components/Card.vue'
+import SmithWaterman from './lib/SmithWaterman'
+
 import Spells from './assets/spells.json'
 // const Spells = {};
 const SpellNames = Object.keys(Spells);
 const SpellSchools = new Set([...new Set(Object.values(Spells).map(spell => spell.school))].sort());
 const SpellSubschools = new Set([...new Set(Object.values(Spells).map(spell => spell.subschools).flat())].sort());
+const Sourcebooks = new Set([...new Set(Object.values(Spells).map(spell => spell.source).flat())].sort());
 const Casters = {
   "sor" : "Sorcerer",
   "wiz" : "Wizard",
@@ -166,44 +181,6 @@ const SpellComponents = [
   { kind: "F", description: "Focus" },
   { kind: "DF", description: "Divine focus" },
 ];
-
-var smithWaterman = function(a, b) {
-  if(a.length == 0) return b.length; 
-  if(b.length == 0) return a.length;
-
-  // swap to save some memory O(min(a,b)) instead of O(a)
-  if(a.length > b.length) {
-    var tmp = a;
-    a = b;
-    b = tmp;
-  }
-
-  var row = Array(a.length + 1);
-  // init the row
-  for(var i = 0; i <= a.length; i++){
-    row[i] = 0;
-  }
-
-  // fill in the rest
-  for(var i = 1; i <= b.length; i++){
-    var prev = 0;
-    for(var j = 1; j <= a.length; j++){
-      var val;
-      if(b.charAt(i-1) == a.charAt(j-1)){
-        val = row[j-1] + 3; // match
-      } else {
-        val = Math.max(0,
-              Math.max(row[j-1] - 1,  // substitution
-              Math.max(prev - 1,      // insertion
-                       row[j] - 1)));  // deletion
-      }
-      row[j - 1] = prev;
-      prev = val;
-    }
-    row[a.length] = prev;
-  }
-  return Math.max(...row);
-}
 
 import { SpellCard } from './proto'
 import { length, encode, decode } from '@protobufjs/base64'
@@ -268,9 +245,15 @@ export default {
     casters: () => Casters,
     symbols: () => SchoolSymbols,
     components: () => SpellComponents,
-    currentSpellbook: function() { return this.activeSpellbook >= 0 ? this.spellbooks[this.activeSpellbook] : null; },
+    sourcebooks: () => Sourcebooks,
+    currentSpellbook: function() {
+      if (this.activeSpellbook >= 0 && (this.activeSpellbook in this.spellbooks)) {
+        return this.spellbooks[this.activeSpellbook];
+      }
+      return null;
+    },
     filtered: function() {
-      if (this.activeSpellbook == -1) {
+      if (this.currentSpellbook == null) {
         return {};
       }
       const caster = this.currentSpellbook.caster;
@@ -288,7 +271,7 @@ export default {
         const search = this.name.toLowerCase();
         if (this.name.length > 2 && this.searchSimilar) {
           return filtered.map(id => { 
-            const res = { s: id, d: smithWaterman(search, Spells[id].name.toLowerCase()) };
+            const res = { s: id, d: SmithWaterman(search, Spells[id].name.toLowerCase()) };
             return res;
           }).sort((a, b) => {
             return +(a.d < b.d) || +(a.d === b.d) - 1;
@@ -355,72 +338,7 @@ export default {
 </script>
 
 <style lang="sass">
-@import "~bootstrap/scss/functions";
-@import "~bootstrap/scss/variables";
-@import "~bootstrap/scss/mixins";
-// @import "~bootstrap/scss/root";
-@media screen {
-@import "~bootstrap/scss/reboot";
-}
-// @import "~bootstrap/scss/type";
-// @import "~bootstrap/scss/images";
-// @import "~bootstrap/scss/code";
-// @import "~bootstrap/scss/grid";
-// @import "~bootstrap/scss/tables";
-@import "~bootstrap/scss/forms";
-@import "~bootstrap/scss/buttons";
-// @import "~bootstrap/scss/transitions";
-// @import "~bootstrap/scss/dropdown";
-// @import "~bootstrap/scss/button-group";
-@import "~bootstrap/scss/input-group";
-// @import "~bootstrap/scss/custom-forms";
-@import "~bootstrap/scss/nav";
-@import "~bootstrap/scss/navbar";
-// @import "~bootstrap/scss/card";
-// @import "~bootstrap/scss/breadcrumb";
-// @import "~bootstrap/scss/pagination";
-// @import "~bootstrap/scss/badge";
-// @import "~bootstrap/scss/jumbotron";
-// @import "~bootstrap/scss/alert";
-// @import "~bootstrap/scss/progress";
-// @import "~bootstrap/scss/media";
-// @import "~bootstrap/scss/list-group";
-// @import "~bootstrap/scss/close";
-// @import "~bootstrap/scss/toasts";
-// @import "~bootstrap/scss/modal";
-// @import "~bootstrap/scss/tooltip";
-// @import "~bootstrap/scss/popover";
-// @import "~bootstrap/scss/carousel";
-// @import "~bootstrap/scss/spinners";
-@import "~bootstrap/scss/utilities";
-@import "~bootstrap/scss/print";
-
-$fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
-@import "~@fortawesome/fontawesome-free/scss/fontawesome";
-@import "~@fortawesome/fontawesome-free/scss/regular";
-@import "~@fortawesome/fontawesome-free/scss/solid";
-
-@font-face {
-    font-family: 'DnDMagicSchools';
-    src: url('assets/DnDMagicSchools.woff2') format('woff2'),
-        url('assets/DnDMagicSchools.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
-
-@font-face {
-  font-family: 'Open Sans';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Open Sans'), local('OpenSans'), url('https://themes.googleusercontent.com/static/fonts/opensans/v5/cJZKeOuBrn4kERxqtaUH3T8E0i7KZn-EPnyo3HZu7kw.woff') format('woff');
-}
-
-@font-face {
-  font-family: 'PT Sans Narrow';
-  font-style: normal;
-  font-weight: 400;
-  src: local('PT Sans Narrow'), local('PTSans-Narrow'), url(https://fonts.gstatic.com/s/ptsansnarrow/v9/BngRUXNadjH0qYEzV7ab-oWlsbCGwR2oefDo.woff2) format('woff2');
-}
+@import 'common';
 
 #app {
   font-family: 'Open Sans', Helvetica, Arial, sans-serif;
@@ -508,7 +426,7 @@ $fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
   }
   .spells {
     display: table;
-    width: 100%;
+    width: 100vw;
   }
 }
 
