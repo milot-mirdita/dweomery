@@ -1,6 +1,14 @@
 <template>
   <div class="card" :style="{ borderColor : card.color }">
-    <div class="level">{{ card[caster] }}</div>
+    <div class="level" v-if="caster == 'investigator'">
+      {{ card["investigator"] != "NULL" ? card["investigator"] : card["alchemist"] }}
+    </div>
+    <div class="level" v-else-if="caster == 'skald'">
+      {{ card["skald"] != "NULL" ? card["skald"] : card["bard"] }}
+    </div>
+    <div class="level" v-else>
+      {{ card[caster] }}
+    </div>
     <div class="card-inner">
       <h1 v-if="inBrowser"><a @click="$emit('selection')">{{ card.name }}<template v-if="knownSpells.includes(card.id)">&nbsp;<i class="fa fa-book text-muted"></i></template></a></h1>
       <h1 v-else>{{ card.name }}</h1>

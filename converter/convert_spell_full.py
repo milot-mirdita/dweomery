@@ -118,6 +118,7 @@ def readSpells(file):
     rangeOnly = re.compile(r".*? \((.*?)\)")
     splitSubschools = re.compile(r"\s+or\s+|,\s*")
     snakeSigilSpecial = re.compile(r"(Abjuration|Conjuration|Enchantment|Evocation|Illusion|Necromancy|Transmutation):\s+(.+?)(?=\s*(Abjuration|Conjuration|Enchantment|Evocation|Illusion|Necromancy|Transmutation|$):?)")
+    domains = re.compile(r"(.+?)\s+\((\d+)\),?\ ?")
     for row in rows:
         record = {}
         for key, cell in zip(first_row, row):
@@ -181,6 +182,24 @@ def readSpells(file):
         card["description"] = conditions(record["description"])
         card["source"] = record["source"]
 
+        domain = []
+        for m in domains.finditer(record["domain"]):
+            domain.append({ "name" : m.group(1), "level" : m.group(2) })
+        if len(domain) > 0:
+            card["domain"] = domain
+
+        bloodline = []
+        for m in domains.finditer(record["bloodline"]):
+            bloodline.append({ "name" : m.group(1), "level" : m.group(2) })
+        if len(bloodline) > 0:
+            card["bloodline"] = bloodline
+
+        patron = []
+        for m in domains.finditer(record["patron"]):
+            patron.append({ "name" : m.group(1), "level" : m.group(2) })
+        if len(patron) > 0:
+            card["patron"] = patron
+
         if card["name"] == "Lissalan Snake Sigil":
             originalName = card["name"]
             originalDescription = card["description"].replace("There are seven variants of this spell, one for each of the Thassilonian schools of magic. Each", "This spell")
@@ -198,6 +217,5 @@ def readSpells(file):
         cards[card["id"]] = card.copy()
 
     print(dumps(cards, ensure_ascii=False))
-
 
 readSpells('spell_full.xlsx')

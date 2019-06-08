@@ -19,6 +19,7 @@ message AppRoot {
     repeated string subschool = 7;
     repeated string component = 8;
     optional string order = 9;
+    repeated string sourcebook = 13;
     optional bool in_selection = 10 [default = false];
     optional bool in_browser = 11 [default = true];
     optional bool search_similar = 12 [default = true];
