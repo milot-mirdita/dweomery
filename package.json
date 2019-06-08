@@ -6,7 +6,8 @@
     "build": "webpack -p --progress --hide-modules  --colors --config ./webpack.config.js",
     "serve": "webpack-dev-server --mode development --open --inline --hot --content-base dist/ --config ./webpack.config.js",
     "proto": "pbjs -t static-module -w es6 -o src/proto.js src/messages.proto",
-    "stats": "webpack --profile --json > dist/compilation-stats.json"
+    "stats": "webpack --profile --json > dist/compilation-stats.json",
+    "spells": "cd converter && ./convert_spell_full.py > ../src/assets/spells.json"
   },
   "dependencies": {
     "register-service-worker": "^1.6.0",
