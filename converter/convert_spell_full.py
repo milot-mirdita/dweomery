@@ -5,17 +5,36 @@ from json import dumps
 import sys
 import re
 
-school_colors = {}
-school_colors["abjuration"] = "LightSteelBlue"
-school_colors["conjuration"] = "MidnightBlue"
-school_colors["divination"] = "indigo"
-school_colors["enchantment"] = "DarkOliveGreen"
-school_colors["evocation"] = "maroon"
-school_colors["illusion"] = "DarkSalmon"
-school_colors["necromancy"] = "dimgray"
-school_colors["transmutation"] = "DarkGoldenrod"
-school_colors["universal"] = "Gold"
-school_colors["see text"] = "LightSteelBlue"
+descriptors = [
+    'acid',
+    'air',
+    'chaotic',
+    'cold',
+    'curse',
+    'darkness',
+    'death',
+    'disease',
+    'earth',
+    'electricity',
+    'emotion',
+    'evil',
+    'fear',
+    'fire',
+    'force',
+    'good',
+    'language_dependent',
+    'lawful',
+    'light',
+    'mind_affecting',
+    'pain',
+    'poison',
+    'shadow',
+    'sonic',
+    'water',
+    'ruse',
+    'draconic',
+    'meditative'
+]
 
 classes = [
     "sor",
@@ -136,12 +155,11 @@ def readSpells(file):
         school = record["school"]
         card["school"] = school.capitalize() 
         card["subschools"] = [ x.capitalize() for x in splitSubschools.split(record["subschool"]) ]
-        card["color"] = school_colors[school.lower()]
 
         for c in classes:
-            if record[c] == "NULL":
-                card[c] = None
-            card[c] = record[c]
+            if record[c] != "NULL":
+                card[c] = record[c]
+
         card["id"] = int(record["id"])
         card["name"] = titlecase(record["name"])
 
@@ -182,6 +200,13 @@ def readSpells(file):
         card["description"] = conditions(record["description"])
         card["source"] = record["source"]
 
+        descript = []
+        for d in descriptors:
+            if record[d] == "1":
+                descript.append(d)
+        if len(descript) > 0:
+            card["descriptors"] = descript
+
         domain = []
         for m in domains.finditer(record["domain"]):
             domain.append({ "name" : m.group(1), "level" : m.group(2) })
@@ -209,7 +234,6 @@ def readSpells(file):
                 description = m.group(2)
                 card["name"] = originalName + ", " + school
                 card["school"] = school
-                card["color"] = school_colors[school.lower()]
                 card["description"] = description + " " + originalDescription
                 cards[card["id"]] = card.copy()
             continue

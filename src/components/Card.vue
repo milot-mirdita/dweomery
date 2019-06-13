@@ -1,5 +1,5 @@
 <template>
-  <div class="card" :style="{ borderColor : card.color }">
+  <div class="card" :style="{ borderColor : colors[card.school] }">
     <div class="level" v-if="caster == 'investigator'">
       {{ card["investigator"] != "NULL" ? card["investigator"] : card["alchemist"] }}
     </div>
@@ -10,9 +10,8 @@
       {{ card[caster] }}
     </div>
     <div class="card-inner">
-      <h1 v-if="inBrowser"><a @click="$emit('selection')">{{ card.name }}<template v-if="knownSpells.includes(card.id)">&nbsp;<i class="fa fa-book text-muted"></i></template></a></h1>
-      <h1 v-else>{{ card.name }}</h1>
-      <hr :style="{ borderColor : card.color }" />
+      <h1><a @click="$emit('selection')">{{ card.name }}<template v-if="knownSpells.includes(card.id)">&nbsp;<i class="fa fa-book text-muted"></i></template></a></h1>
+      <hr :style="{ borderColor : colors[card.school] }" />
       <div>
         <div style="float:left">{{ card.school }}<span v-for="s in card.subschools" :key="s"><template v-if="s">, {{s}}</template></span></div>
         <div style="float:right">{{ card.components_summary }}</div>
@@ -47,22 +46,32 @@
     <div class="source">{{ card.source }}</div>
   </div>
 </template>
-<!-- 
-https://gist.github.com/nathanmacinnes/3516393
-http://jsfiddle.net/6L9xc7p0/1/
--->
 
 <script>
+const SchoolColors = {
+  "Abjuration" : "LightSteelBlue",
+  "Conjuration" : "MidnightBlue",
+  "Divination" : "indigo",
+  "Enchantment" : "DarkOliveGreen",
+  "Evocation" : "maroon",
+  "Illusion" : "DarkSalmon",
+  "Necromancy" : "dimgray",
+  "Transmutation" : "DarkGoldenrod",
+  "Universal" : "Gold",
+  "See Text" : "LightSteelBlue"
+}
 export default {
   name: 'Card',
   props: {
     card: Object,
     caster: String,
-    inBrowser: Boolean,
     knownSpells: {
       type: Array,
       default: []
     }
+  },
+  computed: {
+    colors: () => SchoolColors,
   }
 }
 </script>
@@ -114,6 +123,12 @@ export default {
     flex-direction: column;
     height: 81mm;
 
+    .fa-book {
+      @media print {
+        display: none;
+      }
+    }
+
     h1 {
       font-size: 10pt;
       margin: 0;
@@ -123,6 +138,10 @@ export default {
         cursor: pointer;
         &:hover {
           text-decoration: underline;
+        }
+
+        @media print {
+          text-decoration: none;
         }
       }
     }
