@@ -36,11 +36,7 @@
             <strong>{{a.kind}}</strong>&thinsp;<span v-html="a.description"></span>
         </span>
       </div>
-      <div class="text">
-        <span v-html="card.description"></span>
-        <span v-for="m in card.materials" :key="m.kind">
-          <strong>{{m.kind}}</strong>&thinsp;<span v-html="m.description"></span>.
-        </span>
+      <div class="text" v-html="description">
       </div>
     </div>
     <div class="source">{{ card.source }}</div>
@@ -72,6 +68,14 @@ export default {
   },
   computed: {
     colors: () => SchoolColors,
+    description: function() {
+      var description = this.card.description;
+      const mat = this.card.materials;
+      for (var i in mat) {
+        description += ' <strong>' + mat[i].kind + '</strong>&thinsp;<span>' + mat[i].description + '</span>.'
+      }
+      return description;
+    }
   }
 }
 </script>
