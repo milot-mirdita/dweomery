@@ -3,7 +3,8 @@
 <template>
   <div
     ref="modal"
-    class="modal fade" :class="{ show: show }"
+    class="modal" :class="{ show: show }"
+    :aria-hidden="!show"
     tabindex="-1"
     role="dialog"
     @click.self="show = false;"
@@ -43,16 +44,12 @@ watch: {
         this.show = val;
     },
     show: function() {
-        if (this.isShow) {
-            this.$nextTick(() => {
+        if (this.show) {
                 this.$refs.modal.focus();
                 this.lastOverflow = document.body.style.overflow;
                 document.body.style.overflow = "hidden";
-            });
         } else {
-            this.$nextTick(() => {
-                document.body.style.overflow = this.lastOverflow;
-            });
+            document.body.style.overflow = this.lastOverflow;
         }
         this.$emit('input', this.show);
     }
@@ -92,12 +89,9 @@ watch: {
 </script>
 
 <style scoped>
-.background-darken {
-  background: rgba(0, 0, 0, 0.3);
-}
-
 .show {
     display: block;
+    background: rgba(0, 0, 0, 0.3);
 }
 
 .modal {
@@ -109,5 +103,11 @@ watch: {
   margin-left: 16px;
   margin-right: 16px;
   width: auto;
+}
+
+@media print {
+  .modal {
+    display: none !important;
+  }
 }
 </style>
