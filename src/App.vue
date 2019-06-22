@@ -35,9 +35,12 @@
           </li>
         </ul>
         <form class="form-inline" v-if="activeSpellbook > -1">
-          <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-            <button @click="order = 'level'" type="button" class="btn btn-default"><i class="fa fa-fw fa-sort-numeric-up"></i></button>
-            <button @click="order = 'name'" type="button" class="btn btn-default"><i class="fa fa-fw fa-sort-alpha-up"></i></button>
+          <div class="btn-group btn-group-sm mr-1" role="group" aria-label="Basic example">
+            <a target="_blank" :href="'#print:' + location.hash.substr(1)" class="btn btn-primary"><i class="fa fa-fw fa-print"></i></a>
+          </div>
+          <div class="btn-group btn-group-sm mr-1" role="group" aria-label="Basic example">
+            <button @click="inAlphaOrder = false" type="button" class="btn" :class="inAlphaOrder == false ? 'btn-dark' : 'btn-light'"><i class="fa fa-fw fa-sort-numeric-up"></i></button>
+            <button @click="inAlphaOrder = true" type="button" class="btn" :class="inAlphaOrder == true ? 'btn-dark' : 'btn-light'"><i class="fa fa-fw fa-sort-alpha-up"></i></button>
           </div>
           <div class="input-group input-group-sm">
             <input class="form-control form-control-sm" v-model="name" placeholder="Spellname" type="text" />
@@ -210,11 +213,17 @@ export default {
         inSelection: false,
         inBrowser: true,
         inEdit: false,
-        searchSimilar: true
+        searchSimilar: true,
+        shouldPrint: false,
+        location: window.location
     }
   },
   created() {
-    const hash = window.location.hash.substr(1);
+    var hash = window.location.hash.substr(1);
+    if (hash.startsWith('print:')) {
+      this.shouldPrint = true;
+      hash = hash.substr(6);
+    }
     var buffer = new Uint8Array(length(hash))
     decode(hash, buffer, 0)
     let store = SpellCard.AppRoot.decode(buffer);
@@ -243,17 +252,56 @@ export default {
         }
     }
   },
-//   mounted() {
-//     this.visible = false;
-//     setTimeout(() => {
-//       this.$destroy()
-//       document.querySelector('nav').remove()
+  mounted() {
+    if (this.shouldPrint == false) {
+      return;
+    }
 
-// // https://gist.github.com/nathanmacinnes/3516393
-// // http://jsfiddle.net/6L9xc7p0/1/
+    function splitNodeIntoWords(node) {
+      var startOfWord = /\W\b/;
+      var result;
+      while (startOfWord.exec(node.nodeValue) !== null) {
+          result = startOfWord.exec(node.nodeValue);
+          node = node.splitText(result.index + 1);
+      }
+      return node;
+    };
 
-//     }, 0);
-//   },
+    this.$destroy();
+    document.querySelector('nav').remove();
+    document.querySelector('.filter').remove();
+    var $card = document.querySelector('.card');
+    // while ($card != null) {
+    function expandCard() {
+      if ($card == null) {
+        return;
+      }
+      var $text = $card.querySelector('.text');
+      var $newInner = null;
+      if ($text.scrollHeight > $text.clientHeight) {
+        var $clone = $card.cloneNode(true);
+        $clone.querySelector('.text').innerHTML = '';
+        $newInner = $card.parentNode.insertBefore($clone, $card.nextSibling);
+        $newInner = $newInner.querySelector('.text');
+        for (var j = 0; j < $text.childNodes.length; j++) {
+          splitNodeIntoWords($text.childNodes[j]);
+        }
+      }
+      var $textClone = null;
+      while ($text.scrollHeight > $text.clientHeight) {
+        var $orig = $text.childNodes[$text.childNodes.length - 1];
+        var $cloneInner = $orig.cloneNode(true);
+        $newInner.insertBefore($cloneInner, $textClone);
+        $textClone = $cloneInner;
+        $orig.remove();
+      }
+      $card.normalize();
+      $card = $card.nextSibling;
+      setTimeout(expandCard.bind(this), 0);
+    // }
+    }
+    setTimeout(expandCard.bind(this), 0);
+  },
   computed: {
     spells: () => Spells,
     schools: () => SpellSchools,
