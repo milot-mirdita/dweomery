@@ -59,6 +59,10 @@ export default {
     empty: {
       type: String,
       default: ''
+    },
+    transform: {
+      type: Function,
+      default: (x) => x
     }
   },
   data() {
@@ -73,9 +77,9 @@ export default {
   methods: {
     optionText(option) {
       if (typeof(option) == 'object' && typeof(option.description) == "string") {
-        return option.description;
+        return this.transform(option.description);
       }
-      return option;
+      return this.transform(option);
     },
     optionValue(option) {
       if (typeof(option) == 'object' && typeof(option.kind) == "string") {
