@@ -43,7 +43,7 @@
             <button @click="inAlphaOrder = true" type="button" class="btn" :class="inAlphaOrder == true ? 'btn-dark' : 'btn-light'"><i class="fa fa-fw fa-sort-alpha-up"></i></button>
           </div>
           <div class="input-group input-group-sm">
-            <input class="form-control form-control-sm" v-model="name" placeholder="Spellname" type="text" />
+            <input class="form-control form-control-sm" v-model="query" placeholder="Spellname" type="text" />
             <div class="input-group-append">
               <span @click="searchSimilar = !searchSimilar" class="input-group-text"><i :class="['fa', 'fa-fw', searchSimilar ? 'fa-search' : 'fa-equals' ]"></i></span>
             </div>
@@ -91,13 +91,16 @@
         :options="sourcebooks" size="5" multiple
         ></selection>
     </form>
-    <div class="spells">
+    <div class="spells" v-if="filtered.length > 0 ">
       <card v-for="name in filtered"
         :key="name"
         :card="spells[name]"
         :caster="currentSpellbook.caster"
         :known-spells="currentSpellbook.spells"
-        @selection="addSpellToSpellbook(name)"></card>
+        @selection="toggleSpell(name)"></card>
+    </div>
+    <div class="spells" v-else>
+      No spells selected.
     </div>
   </div>
   <div v-else class="content center">
@@ -113,11 +116,26 @@
           <label for="bookname">Name</label>
           <input id="bookname" type="text" class="form-control" placeholder="Name" v-model="currentSpellbook.name">
         </div>
-        <selection v-if="hasDomains"
+        <!-- <div class="form-group">
+          <label>Extra Spells: </label>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="has-domains" v-model="currentSpellbook.extraSpells.domains">
+            <label class="form-check-label" for="has-domains">Domains</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="has-patron" v-model="currentSpellbook.extraSpells.patron">
+            <label class="form-check-label" for="has-patron">Patron</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="has-bloodline" v-model="currentSpellbook.extraSpells.bloodline">
+            <label class="form-check-label" for="has-bloodline">Bloodline</label>
+          </div>
+        </div> -->
+        <!-- <selection v-if="currentSpellbook.extraSpells.domains"
           name="Domains"
           v-model="currentSpellbook.domain"
           :options="domains" :size="10" multiple
-          ></selection>
+          ></selection> -->
       </form>
     </template>
   </modal>
@@ -137,7 +155,7 @@ const SpellNames = Object.keys(Spells);
 const SpellSchools = new Set([...new Set(Object.values(Spells).map(spell => spell.school))].sort());
 const SpellSubschools = new Set([...new Set(Object.values(Spells).map(spell => spell.subschools).flat())].sort());
 const SpellDomains = new Set([...new Set(Object.values(Spells).filter(spell => typeof(spell.domain) !== "undefined").map(spell => spell.domain.map(s => s.name)).flat())].sort());
-const SpellDescriptors = new Set([...new Set(Object.values(Spells).map(spell => spell.descriptors).flat())].sort());
+const SpellDescriptors = new Set(["", ...new Set(Object.values(Spells).filter(spell => typeof(spell.descriptors) !== "undefined").map(spell => spell.descriptors).flat())].sort());
 const Casters = {
   "sor" : "Sorcerer",
   "wiz" : "Wizard",
@@ -200,16 +218,15 @@ export default {
   data: function() {
     return {
         activeSpellbook: -1,
-        spellbooks: [ { caster: "sor", domains: [], spells: [] } ],
-        name: "",
-        spellRange: [0, 1],
+        spellbooks: [],
+        query: "",
+        levelRange: 0,
         school: [],
         subschool: [],
         component: [],
-        order: "level",
         sourcebook: [],
-        domain: [],
         descriptor: [],
+        inAlphaOrder: false,
         inSelection: false,
         inBrowser: true,
         inEdit: false,
@@ -231,9 +248,9 @@ export default {
     this._persistWatchers = this._persistWatchers || []
 
     const names = [ 
-      'activeSpellbook', 'spellbooks', 'name', 'spellRange',
-      'school', 'subschool', 'component', 'sourcebook',
-      'order', 'inSelection', 'inBrowser', 'searchSimilar'
+      'activeSpellbook', 'spellbooks', 'query', 'levelRange',
+      'school', 'subschool', 'component', 'sourcebook', 'descriptor',
+      'inAlphaOrder', 'inSelection', 'inBrowser', 'inEdit', 'searchSimilar'
     ];
     for (const name of names) {
         if (typeof store[name] !== 'undefined') {
@@ -311,16 +328,6 @@ export default {
     components: () => SpellComponents,
     domains: () => SpellDomains,
     descriptors: () => SpellDescriptors,
-    hasDomains: function() {
-      if (this.currentSpellbook == null) {
-        return false;
-      }
-      const caster = this.currentSpellbook.caster;
-      if (caster == "cleric") {
-        return true;
-      }
-      return false;
-    },
     sourcebooks: function() {
       if (this.currentSpellbook == null) {
         return {};
@@ -345,6 +352,16 @@ export default {
         return value[0];
       });
     },
+    spellRange: {
+      get: function() {
+        var min = this.levelRange % 10;
+        var max = Math.floor(this.levelRange / 10) % 10;
+        return [min, max];
+      },
+      set: function(value) {
+        this.levelRange = value[1] * 10 + value[0];
+      }
+    },
     currentSpellbook: function() {
       if (this.activeSpellbook >= 0 && (this.activeSpellbook in this.spellbooks)) {
         return this.spellbooks[this.activeSpellbook];
@@ -358,36 +375,29 @@ export default {
       const caster = this.currentSpellbook.caster;
       const isInvestigator = caster == "investigator";
       const names = this.inBrowser ? SpellNames : [...this.currentSpellbook.spells];
-      const addDomains = this.hasDomains;
-      var filtered = names.filter((key, index) => {
+      var filtered = names.filter(key => {
         const spell = Spells[key];
-        const filter = spell[caster] != null
-          && (!this.inBrowser 
-              || (caster == "investigator"
-                  ? ((spell["investigator"] >= this.spellRange[0] && spell["investigator"] <= this.spellRange[1]) || (spell["alchemist"] >= this.spellRange[0] && spell["alchemist"] <= this.spellRange[1]))
-                  : caster == "skald"
-                  ? ((spell["skald"] >= this.spellRange[0] && spell["skald"] <= this.spellRange[1]) || (spell["bard"] >= this.spellRange[0] && spell["bard"] <= this.spellRange[1]))
-                  : (spell[caster] >= this.spellRange[0] && spell[caster] <= this.spellRange[1]))
-
-                 
-              // || (addDomains 
-              //     && (typeof(spell["domain"]) !== "undefined"
-              //         || 
-              //         && spell["domain"].any(s => this.domain.includes(s.name))
-              //        )
-              //    )
-             )
-          && (this.school.length == 0 || this.school.includes(spell["school"]))
+        return (this.school.length == 0 || this.school.includes(spell["school"]))
           && (this.subschool.length == 0 || [...this.subschool].filter(s => spell["subschools"].includes(s)).length > 0)
-          && (this.descriptor.length == 0 || [...this.descriptor].filter(s => spell["descriptors"].includes(s)).length > 0)
+          && (this.descriptor.length == 0 || [...this.descriptor].filter(s => (s == "" && ("descriptors" in spell) == false) || ("descriptors" in spell && spell["descriptors"].includes(s))).length > 0)
           && (this.component.length == 0 || (spell["components"].length == this.component.length && spell["components"].every(s => this.component.includes(s))))
           && (this.sourcebook.length == 0 || this.sourcebook.includes(spell["source"]));
-        return filter;
       });
+      if (this.inBrowser) {
+        filtered = filtered.filter(key => {
+          const spell = Spells[key];
+          return spell[caster] != null
+            && (caster == "investigator"
+                    ? ((spell["investigator"] >= this.spellRange[0] && spell["investigator"] <= this.spellRange[1]) || (spell["alchemist"] >= this.spellRange[0] && spell["alchemist"] <= this.spellRange[1]))
+                    : caster == "skald"
+                    ? ((spell["skald"] >= this.spellRange[0] && spell["skald"] <= this.spellRange[1]) || (spell["bard"] >= this.spellRange[0] && spell["bard"] <= this.spellRange[1]))
+                    : (spell[caster] >= this.spellRange[0] && spell[caster] <= this.spellRange[1]));
+        });
+      }
 
-      if (this.name.length > 0) {
-        const search = this.name.toLowerCase();
-        if (this.name.length > 2 && this.searchSimilar) {
+      if (this.query.length > 0) {
+        const search = this.query.toLowerCase();
+        if (this.query.length > 2 && this.searchSimilar) {
           return filtered.map(id => { 
             const res = { s: id, d: SmithWaterman(search, Spells[id].name.toLowerCase()) };
             return res;
@@ -400,7 +410,7 @@ export default {
           })
         }
       } else {
-        if (this.order == "name") {
+        if (this.inAlphaOrder == true) {
           return filtered.sort((a, b) => {
             if (Spells[a].name < Spells[b].name)
               return -1;
@@ -427,6 +437,11 @@ export default {
       this.spellbooks.push({
         caster: caster,
         name: this.casters[caster],
+        extraSpells: {
+          domains: false,
+          patron: false,
+          bloodlines: false
+        },
         spells: []
       });
       this.activeSpellbook = this.spellbooks.length - 1;
@@ -438,7 +453,7 @@ export default {
       this.inBrowser = false;
       this.inSelection = false;
     },
-    addSpellToSpellbook(spell) {
+    toggleSpell(spell) {
       const index = this.currentSpellbook.spells.indexOf(spell | 0);
       if (index > -1) {
         this.currentSpellbook.spells.splice(index, 1);
