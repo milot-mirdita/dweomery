@@ -60,24 +60,23 @@
       </div>
       <selection
         name="Schools"
-        hint="Use CTRL to select multiple entries."
         v-model="school"
-        :options="schools" :size="schools.size" :symbols="symbols" multiple
+        :options="schools" :symbols="symbols" multiple
         ></selection>
       <selection
         name="Subschools"
         v-model="subschool"
-        :options="subschools" size="4" multiple empty="None"
+        :options="subschools" multiple empty="None"
         ></selection>
       <selection
         name="Components"
         v-model="component"
-        :options="components" size="5" multiple
+        :options="components" multiple
         ></selection>
       <selection
         name="Descriptors"
         v-model="descriptor"
-        :options="descriptors" size="5" multiple
+        :options="descriptors" multiple
         empty="None"
         :transform="(x) => {
           if (x == '') return x;
@@ -88,7 +87,7 @@
       <selection
         name="Sourcebooks"
         v-model="sourcebook"
-        :options="sourcebooks" size="5" multiple
+        :options="sourcebooks" multiple
         ></selection>
     </form>
     <div class="spells" v-if="filtered.length > 0 ">
@@ -476,10 +475,6 @@ export default {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-}
-
-.magic-school {
-  font-family: 'DnDMagicSchools', 'Open Sans', Helvetica, Arial, sans-serif;
 }
 
 .center {
