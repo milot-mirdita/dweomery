@@ -10,7 +10,6 @@
     "spells": "cd converter && ./convert_spell_full.py > ../src/assets/spells.json"
   },
   "dependencies": {
-    "register-service-worker": "^1.6.2",
     "terser": "^4.0.0",
     "vue": "^2.6.10"
   },
