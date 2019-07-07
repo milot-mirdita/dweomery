@@ -16,13 +16,13 @@
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item" v-if="spellbooks.length > 0">
-            <a @click="inBrowser = false" class="nav-link" v-if="inBrowser"><i class="fa fa-book"></i>&nbsp;Spellbook</a>
-            <a @click="inBrowser = true" class="nav-link" v-else><i class="fa fa-grip-horizontal"></i>&nbsp;Browser</a>
+            <a @click="inBrowser = false" class="nav-link" v-if="inBrowser"><i class="fa fa-fw fa-book"></i>&nbsp;Spellbook</a>
+            <a @click="inBrowser = true" class="nav-link" v-else><i class="fa fa-fw fa-grip-horizontal"></i>&nbsp;Browser</a>
           </li>
           <li v-for="(book, index) in spellbooks" :key="index" class="nav-item" :class="{ 'active' : activeSpellbook == index }">
             <a @click="activeSpellbook = index;" class="nav-link">
               <div class="caster">
-                  <i @click="inEdit = true"
+                  <i @click="if (activeSpellbook == index) inEdit = true"
                     class="caster-icon" :class="{ 'active' : activeSpellbook == index, 'edit' : activeSpellbook == index && inEdit }"></i>
                   {{ book.name }}
               </div>
@@ -30,7 +30,7 @@
           </li>
           <li class="nav-item">
             <a @click="inSelection = true" class="nav-link">
-              <i class="fa fa-plus-circle"></i>
+              <i class="fa fa-fw fa-plus-circle"></i>
             </a>
           </li>
         </ul>
@@ -100,7 +100,7 @@
   <div v-else class="content center">
     Add a spellbook with the&nbsp;<a @click="inSelection = true"><i class="fa fa-plus-circle"><span class="sr-only">plus</span></i></a>&nbsp;button.
   </div>
-  <modal v-model="inEdit">
+  <modal v-model="inEdit" v-if="currentSpellbook">
     <template v-slot:title>
       {{casters[currentSpellbook.caster]}}
     </template>
@@ -322,7 +322,7 @@ export default {
     },
     filtered: function() {
       if (this.currentSpellbook == null) {
-        return {};
+        return [];
       }
       const caster = this.currentSpellbook.caster;
       const isInvestigator = caster == "investigator";
@@ -451,6 +451,10 @@ export default {
     .spells {
       width: 100%;
     }
+  }
+
+  .fixed-top {
+    position: relative;
   }
 }
 
