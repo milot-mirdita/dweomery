@@ -86,12 +86,12 @@
         ></selection>
     </form>
     <div class="spells" v-if="filtered.length > 0 ">
-      <card v-for="name in filtered"
-        :key="name"
-        :card="spells[name]"
+      <card v-for="spells in filtered"
+        :key="spells.name"
+        :card="spells.spell"
         :caster="currentSpellbook.caster"
-        :known-spells="currentSpellbook.spells"
-        @selection="toggleSpell(name)"></card>
+        :known-spells="shouldPrint ? [] : currentSpellbook.spells"
+        @selection="toggleSpell(spells.name)"></card>
     </div>
     <div class="spells" v-else>
       No spells selected.
@@ -272,7 +272,6 @@ export default {
     document.querySelector('.filter').remove();
   },
   computed: {
-    spells: () => Spells,
     schools: () => SpellSchools,
     subschools: () => SpellSubschools,
     casters: () => Casters,
@@ -350,26 +349,26 @@ export default {
       if (this.query.length > 0) {
         const search = this.query.toLowerCase();
         if (this.query.length > 2 && this.searchSimilar) {
-          return filtered.map(id => { 
+          filtered = filtered.map(id => {
             const res = { s: id, d: SmithWaterman(search, Spells[id].name.toLowerCase()) };
             return res;
           }).sort((a, b) => {
             return +(a.d < b.d) || +(a.d === b.d) - 1;
           }).filter(spell => spell.d > 2).map(spell => spell.s);
         } else {
-          return filtered.filter(id => {
+          filtered = filtered.filter(id => {
             return Spells[id].name.toLowerCase().startsWith(search);
           })
         }
       } else {
         if (this.inAlphaOrder == true) {
-          return filtered.sort((a, b) => {
+          filtered = filtered.sort((a, b) => {
             if (Spells[a].name < Spells[b].name)
               return -1;
             return 1;
           })
         } else {
-          return filtered.sort((a, b) => {
+          filtered = filtered.sort((a, b) => {
             if (Spells[a][caster] === Spells[b][caster]) {
               if (Spells[a].name < Spells[b].name)
                 return -1;
@@ -381,7 +380,27 @@ export default {
           })
         }
       }
-      return filtered;
+
+      if (this.shouldPrint) {
+        var expanded = [];
+        for (var i = 0; i < filtered.length; ++i) {
+          const pages =  Spells[filtered[i]].description.length;
+          for (var j = 0; j < pages; ++j) {
+            // TODO: look up how to clone
+            var clone = JSON.parse(JSON.stringify(Spells[filtered[i]]));
+            clone.description = Spells[filtered[i]].description[j];
+            if (j != pages - 1) {
+              clone.materials = [];
+            }
+            expanded.push({ name: filtered[i] + '-' + j, spell: clone});
+          }
+        }
+        return expanded;
+      } else {
+        return filtered.map(name => {
+          return { name : name, spell: Spells[name] }
+        });
+      }
     }
   },
   methods: {
