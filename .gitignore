@@ -1,3 +1,7 @@
+src/proto.js
+src/assets/spells.json
+converter/spell_full.xlsx
+
 .DS_Store
 node_modules
 /dist
