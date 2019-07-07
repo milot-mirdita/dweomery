@@ -39,6 +39,9 @@
       <div class="text" v-html="description">
       </div>
     </div>
+    <div class="descriptors">
+      <template v-for="(d, i) in card.descriptors">{{d}}<template v-if="i < (card.descriptors.length - 1)">,&thinsp;</template></template>
+    </div>
     <div class="source">{{ card.source }}</div>
   </div>
 </template>
@@ -99,26 +102,33 @@ export default {
   }
 
   .level {
-      position: absolute;
-      top: -0.75mm;
-      right: -0.75mm;
-      font-size: 12pt;
-      width: 5mm;
-      text-align: center;
-      background-color: white;
-      border-radius: 1mm;
+    position: absolute;
+    top: -0.75mm;
+    right: -0.75mm;
+    font-size: 12pt;
+    width: 5mm;
+    text-align: center;
+    background-color: white;
+    border-radius: 1mm;
+  }
+
+  .source, .descriptors {
+    position: absolute;
+    bottom: -0.75mm;
+    font-family: 'PT Sans Narrow', sans-serif;
+    font-size: 5pt;
+    text-align: right;
+    background-color: white;
+    border-radius: 1mm;
+    padding: 0mm 1mm;
   }
 
   .source {
-      position: absolute;
-      bottom: -0.75mm;
-      right: 0;
-      font-family: 'PT Sans Narrow', sans-serif;
-      font-size: 5pt;
-      text-align: right;
-      background-color: white;
-      border-radius: 1mm;
-      padding: 0mm 1mm;
+    right: 0;
+  }
+
+  .descriptors {
+    left: 0;
   }
 
   .card-inner {
