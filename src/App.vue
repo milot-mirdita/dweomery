@@ -460,17 +460,7 @@ export default {
 </script>
 
 <style lang="sass">
-@import 'common';
-
-#app {
-  font-family: 'Open Sans', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
+@import "common";
 
 .center {
   position: relative;
