@@ -78,11 +78,6 @@
         v-model="descriptor"
         :options="descriptors" multiple
         empty="None"
-        :transform="(x) => {
-          if (x == '') return x;
-          x = x.replace(/_/, ' ');
-          return x.charAt(0).toUpperCase() + x.slice(1);
-        }"
         ></selection>
       <selection
         name="Sourcebooks"

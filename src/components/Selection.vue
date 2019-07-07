@@ -40,17 +40,13 @@ export default {
       type: String,
       default: ''
     },
-    transform: {
-      type: Function,
-      default: (x) => x
-    }
   },
   methods: {
     optionText(option) {
       if (typeof(option) == 'object' && typeof(option.description) == "string") {
-        return this.transform(option.description);
+        return option.description;
       }
-      return this.transform(option);
+      return option;
     },
     optionValue(option) {
       if (typeof(option) == 'object' && typeof(option.kind) == "string") {

@@ -203,7 +203,7 @@ def readSpells(file):
         descript = []
         for d in descriptors:
             if record[d] == "1":
-                descript.append(d)
+                descript.append(titlecase(d.replace('_', ' ')))
         if len(descript) > 0:
             card["descriptors"] = descript
 
