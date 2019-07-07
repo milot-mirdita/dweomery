@@ -267,51 +267,9 @@ export default {
     if (this.shouldPrint == false) {
       return;
     }
-
-    function splitNodeIntoWords(node) {
-      var startOfWord = /\W\b/;
-      var result;
-      while (startOfWord.exec(node.nodeValue) !== null) {
-          result = startOfWord.exec(node.nodeValue);
-          node = node.splitText(result.index + 1);
-      }
-      return node;
-    };
-
     this.$destroy();
     document.querySelector('nav').remove();
     document.querySelector('.filter').remove();
-    var $card = document.querySelector('.card');
-    // while ($card != null) {
-    function expandCard() {
-      if ($card == null) {
-        return;
-      }
-      var $text = $card.querySelector('.text');
-      var $newInner = null;
-      if ($text.scrollHeight > $text.clientHeight) {
-        var $clone = $card.cloneNode(true);
-        $clone.querySelector('.text').innerHTML = '';
-        $newInner = $card.parentNode.insertBefore($clone, $card.nextSibling);
-        $newInner = $newInner.querySelector('.text');
-        for (var j = 0; j < $text.childNodes.length; j++) {
-          splitNodeIntoWords($text.childNodes[j]);
-        }
-      }
-      var $textClone = null;
-      while ($text.scrollHeight > $text.clientHeight) {
-        var $orig = $text.childNodes[$text.childNodes.length - 1];
-        var $cloneInner = $orig.cloneNode(true);
-        $newInner.insertBefore($cloneInner, $textClone);
-        $textClone = $cloneInner;
-        $orig.remove();
-      }
-      $card.normalize();
-      $card = $card.nextSibling;
-      setTimeout(expandCard.bind(this), 0);
-    // }
-    }
-    setTimeout(expandCard.bind(this), 0);
   },
   computed: {
     spells: () => Spells,

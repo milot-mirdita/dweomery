@@ -74,6 +74,7 @@ export default {
     description: function() {
       var description = this.card.description;
       const mat = this.card.materials;
+      description += '<!--COMP-->'
       for (var i in mat) {
         description += ' <strong>' + mat[i].kind + '</strong>&thinsp;<span>' + mat[i].description + '</span>.'
       }

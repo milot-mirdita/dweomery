@@ -9,15 +9,20 @@ const PostcssPresetEnvPlugin = require('postcss-preset-env');
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production';
+    const isPageMeasure = typeof (env) != 'undefined' && env.PAGE_MEASURE === true;
 
     var exports = {
-        entry: path.resolve(__dirname, './src/main.js'),
+        entry: !isPageMeasure 
+                ? path.resolve(__dirname, './src/main.js')
+                : path.resolve(__dirname, './src/measure.js'),
         target: 'web',
         mode: argv.mode,
         output: {
             path: path.resolve(__dirname, './dist'),
             publicPath: '/',
-            filename: 'build.[hash:7].js',
+            filename: !isPageMeasure 
+                        ? 'build.[hash:7].js'
+                        : 'measure.[hash:7].js',
             crossOriginLoading: 'anonymous',
         },
         module: {
@@ -64,9 +69,9 @@ module.exports = (env, argv) => {
         },
         resolve: {
             extensions: ['.js', '.vue', '.json'],
-            alias: {
+            alias: !isPageMeasure ? {
                 'vue$': 'vue/dist/vue.runtime.esm.js',
-            }
+            } : {}
         },
         plugins: [
             new webpack.DefinePlugin({
