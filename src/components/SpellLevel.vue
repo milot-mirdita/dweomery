@@ -60,16 +60,22 @@ export default {
 }
 
 .levels {
-    --triangle-base: 60px;
+    --triangle-base: 45px;
 }
 
-@media (min-width: 768px){ 
+@media (min-width: 375px){ 
+.levels {
+    --triangle-base: 50px;
+}
+}
+
+@media (min-width: 768px) { 
 .levels {
     --triangle-base: 32px;
 }
 
 }
-@media (min-width: 992px) { 
+@media (min-width: 1025px) { 
 .levels {
     --triangle-base: 36px;
 }
