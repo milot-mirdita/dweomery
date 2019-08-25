@@ -404,7 +404,6 @@ export default {
         for (var i = 0; i < filtered.length; ++i) {
           const pages =  Spells[filtered[i]].description.length;
           for (var j = 0; j < pages; ++j) {
-            // TODO: look up how to clone
             var clone = JSON.parse(JSON.stringify(Spells[filtered[i]]));
             clone.description = Spells[filtered[i]].description[j];
             if (j != pages - 1) {
@@ -423,6 +422,10 @@ export default {
   },
   methods: {
     addSpellbook(caster) {
+      this.inSelection = false;
+      this.inEdit = false;
+      // TODO: hack to fix modal overflow
+      document.body.style.overflow = "auto";
       this.spellbooks.push({
         caster: caster,
         name: this.casters[caster],
@@ -434,14 +437,14 @@ export default {
         }
       });
       this.activeSpellbook = this.spellbooks.length - 1;
-      this.inSelection = false;
-      this.inEdit = false;
     },
     removeSpellbook() {
-      this.spellbooks.splice(this.activeSpellbook, 1);
-      this.activeSpellbook = -1;
       this.inSelection = false;
       this.inEdit = false;
+      // TODO: hack to fix modal overflow
+      document.body.style.overflow = "auto";
+      this.spellbooks.splice(this.activeSpellbook, 1);
+      this.activeSpellbook = -1;
     },
     toggleSpell(spell) {
       const index = this.currentSpellbook.spells.indexOf(spell | 0);

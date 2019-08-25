@@ -44,14 +44,14 @@ watch: {
         this.show = val;
     },
     show: function() {
-        if (this.show) {
-                this.$refs.modal.focus();
-                this.lastOverflow = document.body.style.overflow;
-                document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = this.lastOverflow;
-        }
-        this.$emit('input', this.show);
+      if (this.show) {
+          this.$refs.modal.focus();
+          this.lastOverflow = document.body.style.overflow;
+          document.body.style.overflow = "hidden";
+      } else {
+          document.body.style.overflow = this.lastOverflow;
+      }
+      this.$emit('input', this.show);
     }
   },
   props: {
