@@ -114,7 +114,7 @@ export default {
     position: absolute;
     bottom: -0.75mm;
     font-family: 'PT Sans Narrow', sans-serif;
-    font-size: 5pt;
+    font-size: 7pt;
     text-align: right;
     background-color: white;
     border-radius: 1mm;
