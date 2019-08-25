@@ -1,11 +1,19 @@
 package SpellCard;
 syntax = "proto3";
 
+message ExtraSpells {
+    repeated string domain = 1;
+    repeated string patron = 2;
+    repeated string bloodline = 3;
+}
+
 message Spellbook {
     required string caster = 1;
     optional string name = 2;
     repeated int32 spells = 3;
+    optional ExtraSpells extraSpells = 4;
 }
+
 message AppRoot {
     optional int32 active_spellbook = 0 [default = -1];
     repeated Spellbook spellbooks = 1;
@@ -14,11 +22,12 @@ message AppRoot {
     optional int32 level_range = 4 [default = 0];
     repeated string school = 5;
     repeated string subschool = 6;
-    repeated string component = 7;
-    repeated string sourcebook = 8;
-    optional bool in_alpha_order = 9 [default = false];
-    optional bool in_selection = 10 [default = false];
-    optional bool in_browser = 11 [default = true];
-    optional bool in_edit = 12 [default = false];
-    optional bool search_similar = 13 [default = true];
+    repeated string time = 7;
+    repeated string component = 8;
+    repeated string sourcebook = 9;
+    optional bool in_alpha_order = 10 [default = false];
+    optional bool in_selection = 11 [default = false];
+    optional bool in_browser = 12 [default = true];
+    optional bool in_edit = 13 [default = false];
+    optional bool search_similar = 14 [default = true];
 }

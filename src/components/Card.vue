@@ -1,13 +1,10 @@
 <template>
   <div class="card" :style="{ borderColor : colors[card.school] }">
-    <div class="level" v-if="caster == 'investigator'">
-      {{ card["investigator"] != "NULL" ? card["investigator"] : card["alchemist"] }}
-    </div>
-    <div class="level" v-else-if="caster == 'skald'">
-      {{ card["skald"] != "NULL" ? card["skald"] : card["bard"] }}
+    <div class="level" v-if="typeof(card[caster]) != 'undefined'">
+      {{ card[caster] }}
     </div>
     <div class="level" v-else>
-      {{ card[caster] }}
+      {{ card["sla"] }}+
     </div>
     <div class="card-inner">
       <h1><a @click="$emit('selection')">{{ card.name }}<template v-if="knownSpells.includes(card.id)">&nbsp;<i class="fa fa-book text-muted"></i></template></a></h1>
@@ -17,8 +14,8 @@
         <div style="float:right">{{ card.components_summary }}</div>
       </div>
       <div class="summary">
-        <span v-if="card.casting_time">
-          <strong>T</strong>&thinsp;{{card.casting_time}}
+        <span v-if="card.time">
+          <strong>T</strong>&thinsp;{{card.time}}
         </span>
         <span v-if="card.range">
           <strong>R</strong>&thinsp;{{card.range}}
@@ -26,8 +23,8 @@
         <span v-if="card.duration">
           <strong>D</strong>&thinsp;{{card.duration}}
         </span>
-        <span v-if="card.saving_throw">
-          <strong :class="{ 'strike-out' : (card.saving_throw == 'no') }">S</strong>&thinsp;<span :class="{ 'sr-only' : card.saving_throw == 'no' }" v-html="card.saving_throw"></span>&thinsp;
+        <span v-if="card.save">
+          <strong :class="{ 'strike-out' : (card.save == 'no') }">S</strong>&thinsp;<span :class="{ 'sr-only' : card.save == 'no' }" v-html="card.save"></span>&thinsp;
         </span>
         <span v-if="card.resistance">
           <strong :class="{ 'strike-out' : (card.resistance == 'no') }">X</strong>&thinsp;<span :class="{ 'sr-only' : card.resistance == 'no' }" v-html="card.resistance"></span>&thinsp;

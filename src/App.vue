@@ -34,7 +34,7 @@
             </a>
           </li>
         </ul>
-        <form class="form-inline" v-if="activeSpellbook > -1">
+        <form class="navbar-form mb-2 mb-md-0" v-if="activeSpellbook > -1">
           <div class="btn-group btn-group-sm mr-1" role="group" aria-label="Basic example">
             <a target="_blank" :href="'#print:' + location.hash.substr(1)" class="btn btn-primary"><i class="fa fa-fw fa-print"></i></a>
           </div>
@@ -42,6 +42,8 @@
             <button @click="inAlphaOrder = false" type="button" class="btn" :class="inAlphaOrder == false ? 'btn-dark' : 'btn-light'"><i class="fa fa-fw fa-sort-numeric-up"></i></button>
             <button @click="inAlphaOrder = true" type="button" class="btn" :class="inAlphaOrder == true ? 'btn-dark' : 'btn-light'"><i class="fa fa-fw fa-sort-alpha-up"></i></button>
           </div>
+        </form>
+        <form class="navbar-form" v-if="activeSpellbook > -1">
           <div class="input-group input-group-sm">
             <input class="form-control form-control-sm" v-model="query" placeholder="Spellname" type="text" />
             <div class="input-group-append">
@@ -67,6 +69,12 @@
         name="Subschools"
         v-model="subschool"
         :options="subschools" multiple empty="None"
+        :collapsed="true"
+        ></selection>
+      <selection
+        name="Casting Time"
+        v-model="time"
+        :options="times" multiple
         ></selection>
       <selection
         name="Components"
@@ -83,6 +91,7 @@
         name="Sourcebooks"
         v-model="sourcebook"
         :options="sourcebooks" multiple
+        :collapsed="true"
         ></selection>
     </form>
     <div class="spells" v-if="filtered.length > 0 ">
@@ -110,27 +119,29 @@
           <label for="bookname">Name</label>
           <input id="bookname" type="text" class="form-control" placeholder="Name" v-model="currentSpellbook.name">
         </div>
-        <!-- <div class="form-group">
-          <label>Extra Spells: </label>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="has-domains" v-model="currentSpellbook.extraSpells.domains">
-            <label class="form-check-label" for="has-domains">Domains</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="has-patron" v-model="currentSpellbook.extraSpells.patron">
-            <label class="form-check-label" for="has-patron">Patron</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="has-bloodline" v-model="currentSpellbook.extraSpells.bloodline">
-            <label class="form-check-label" for="has-bloodline">Bloodline</label>
-          </div>
-        </div> -->
-        <!-- <selection v-if="currentSpellbook.extraSpells.domains"
+        <label>Extra Spells</label>
+        <selection
           name="Domains"
-          v-model="currentSpellbook.domain"
-          :options="domains" :size="10" multiple
-          ></selection> -->
+          v-model="currentSpellbook.extraSpells.domain"
+          :options="domains" multiple
+          :collapsed="true"
+          ></selection>
+        <selection
+          name="Patrons"
+          v-model="currentSpellbook.extraSpells.patron"
+          :options="patrons" multiple
+          :collapsed="true"
+          ></selection>
+        <selection
+          name="Bloodlines"
+          v-model="currentSpellbook.extraSpells.bloodline"
+          :options="bloodlines" multiple
+          :collapsed="true"
+          ></selection>
       </form>
+    </template>
+    <template v-slot:footer>
+      <button class="btn btn-danger" @click="removeSpellbook()">Remove Spellbook</button>
     </template>
   </modal>
 </div>
@@ -148,7 +159,10 @@ import Spells from './assets/spells.json'
 const SpellNames = Object.keys(Spells);
 const SpellSchools = new Set([...new Set(Object.values(Spells).map(spell => spell.school))].sort());
 const SpellSubschools = new Set([...new Set(Object.values(Spells).map(spell => spell.subschools).flat())].sort());
-const SpellDomains = new Set([...new Set(Object.values(Spells).filter(spell => typeof(spell.domain) !== "undefined").map(spell => spell.domain.map(s => s.name)).flat())].sort());
+const SpellTimes = new Set([...new Set(Object.values(Spells).map(spell => spell.tc).flat())].sort());
+const SpellDomains = new Set([...new Set(Object.values(Spells).filter(spell => typeof(spell.domain) !== "undefined").map(spell => Object.keys(spell.domain)).flat())].sort());
+const SpellPatrons = new Set([...new Set(Object.values(Spells).filter(spell => typeof(spell.patron) !== "undefined").map(spell => Object.keys(spell.patron)).flat())].sort());
+const SpellBloodlines = new Set([...new Set(Object.values(Spells).filter(spell => typeof(spell.bloodline) !== "undefined").map(spell => Object.keys(spell.bloodline)).flat())].sort());
 const SpellDescriptors = new Set(["", ...new Set(Object.values(Spells).filter(spell => typeof(spell.descriptors) !== "undefined").map(spell => spell.descriptors).flat())].sort());
 const Casters = {
   "sor" : "Sorcerer",
@@ -160,7 +174,7 @@ const Casters = {
   "paladin" : "Paladin",
   "alchemist" : "Alchemist",
   "summoner" : "Summoner",
-  "summoner_unchained" : "Summoner (unchained)",
+  "summoner_unchained" : "Unchained Summoner",
   "witch" : "Witch",
   "inquisitor" : "Inquisitor",
   "oracle" : "Oracle",
@@ -177,6 +191,7 @@ const Casters = {
   "skald" : "Skald",
   "investigator" : "Investigator",
   "hunter" : "Hunter",
+  "warpriest" : "Warpriest",
 };
 
 const SchoolSymbols = {
@@ -217,6 +232,7 @@ export default {
         levelRange: 0,
         school: [],
         subschool: [],
+        time: [],
         component: [],
         sourcebook: [],
         descriptor: [],
@@ -224,7 +240,7 @@ export default {
         inSelection: false,
         inBrowser: true,
         inEdit: false,
-        searchSimilar: true,
+        searchSimilar: false,
         shouldPrint: false,
         location: window.location
     }
@@ -243,7 +259,7 @@ export default {
 
     const names = [ 
       'activeSpellbook', 'spellbooks', 'query', 'levelRange',
-      'school', 'subschool', 'component', 'sourcebook', 'descriptor',
+      'school', 'subschool', 'component', 'time', 'sourcebook', 'descriptor',
       'inAlphaOrder', 'inSelection', 'inBrowser', 'inEdit', 'searchSimilar'
     ];
     for (const name of names) {
@@ -276,8 +292,11 @@ export default {
     subschools: () => SpellSubschools,
     casters: () => Casters,
     symbols: () => SchoolSymbols,
+    times: () => SpellTimes,
     components: () => SpellComponents,
     domains: () => SpellDomains,
+    patrons: () => SpellPatrons,
+    bloodlines: () => SpellBloodlines,
     descriptors: () => SpellDescriptors,
     sourcebooks: function() {
       if (this.currentSpellbook == null) {
@@ -331,18 +350,17 @@ export default {
         return (this.school.length == 0 || this.school.includes(spell["school"]))
           && (this.subschool.length == 0 || [...this.subschool].filter(s => spell["subschools"].includes(s)).length > 0)
           && (this.descriptor.length == 0 || [...this.descriptor].filter(s => (s == "" && ("descriptors" in spell) == false) || ("descriptors" in spell && spell["descriptors"].includes(s))).length > 0)
+          && (this.time.length == 0 || this.time.includes(spell["tc"]))
           && (this.component.length == 0 || (spell["components"].length == this.component.length && spell["components"].every(s => this.component.includes(s))))
           && (this.sourcebook.length == 0 || this.sourcebook.includes(spell["source"]));
       });
       if (this.inBrowser) {
         filtered = filtered.filter(key => {
           const spell = Spells[key];
-          return spell[caster] != null
-            && (caster == "investigator"
-                    ? ((spell["investigator"] >= this.spellRange[0] && spell["investigator"] <= this.spellRange[1]) || (spell["alchemist"] >= this.spellRange[0] && spell["alchemist"] <= this.spellRange[1]))
-                    : caster == "skald"
-                    ? ((spell["skald"] >= this.spellRange[0] && spell["skald"] <= this.spellRange[1]) || (spell["bard"] >= this.spellRange[0] && spell["bard"] <= this.spellRange[1]))
-                    : (spell[caster] >= this.spellRange[0] && spell[caster] <= this.spellRange[1]));
+          return ((this.currentSpellbook.extraSpells.domain.some(d => "domain" in spell && Object.keys(spell["domain"]).some(sd => (sd == d && spell["domain"][sd] >= this.spellRange[0] && spell["domain"][sd] <= this.spellRange[1]))))
+                      || (this.currentSpellbook.extraSpells.bloodline.some(d => "bloodline" in spell && Object.keys(spell["bloodline"]).some(sd => (sd == d && spell["bloodline"][sd] >= this.spellRange[0] && spell["bloodline"][sd] <= this.spellRange[1]))))
+                      || (this.currentSpellbook.extraSpells.patron.some(d => "patron" in spell && Object.keys(spell["patron"]).some(sd => (sd == d && spell["patron"][sd] >= this.spellRange[0] && spell["patron"][sd] <= this.spellRange[1])))))
+             || (spell[caster] >= this.spellRange[0] && spell[caster] <= this.spellRange[1]);
         });
       }
 
@@ -408,21 +426,22 @@ export default {
       this.spellbooks.push({
         caster: caster,
         name: this.casters[caster],
+        spells: [],
         extraSpells: {
-          domains: false,
-          patron: false,
-          bloodlines: false
-        },
-        spells: []
+          domain: [],
+          patron: [],
+          bloodline: []
+        }
       });
       this.activeSpellbook = this.spellbooks.length - 1;
       this.inSelection = false;
+      this.inEdit = false;
     },
-    removeSpellbook(index) {
-      this.spellbooks = this.spellbooks.splice(index, 1);
+    removeSpellbook() {
+      this.spellbooks.splice(this.activeSpellbook, 1);
       this.activeSpellbook = -1;
-      this.inBrowser = false;
       this.inSelection = false;
+      this.inEdit = false;
     },
     toggleSpell(spell) {
       const index = this.currentSpellbook.spells.indexOf(spell | 0);
@@ -469,6 +488,7 @@ export default {
 
     .spells {
       width: 100%;
+      justify-content: center;
     }
   }
 

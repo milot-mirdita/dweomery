@@ -65,11 +65,12 @@ classes = [
     "summoner_unchained"
 ]
 
+timecategory = re.compile(r"…|\/.+")
 one = re.compile(r"\b(one)\b")
 hitdieless = re.compile(r"(\d+)\s+HD\s+or\s+less")
 hitdiemore = re.compile(r"(\d+)\s+HD\s+or\s+more")
 def shorten(val, aggressive = True):
-    mapping = [ 
+    mapping = [
         ('caster level', 'level'), ('levels', 'cl'), ('level', 'cl'),  ('ft.', 'ft'), ('rounds', 'rd'), ('round', 'rd'),
         ('min.', 'min'), ('minutes', 'min'), ('minute', 'min'), ('hours', 'h'), ('hour', 'h'), ('maximum', 'max'), ('minimum', 'min'),
         ('instantaneous', 'instant'), ('Concentration', 'conc.'), ('concentration', 'conc.'),
@@ -87,11 +88,11 @@ def shorten(val, aggressive = True):
     if aggressive == False:
         return val
 
-    mapping = [ 
+    mapping = [
         (' cl', 'cl'), (' ft', 'ft'), (' rd', 'rd'), (' min', 'min'), 
         ('unlimited', '∞'), ('permanent', '∞'), (' per ', '/'), (' (D)', '; D'),
         ('until discharged', 'discharge'), (' or discharged', '/discharge' ), ('or until', 'or'),
-        (' standard action', 'std'), (' action ', ''), (' action', ''),
+        (' standard', ' std'), (' action', ''),
         ('; see text', '…'), (', see text', '…'), ('; see below', '…'), (', see below', '…'), (' (see below)', '…'), (' (see text)', '…'), ('see text', '…'), ('see below', '…'), ('see Text', '…'),
         (' (object)', '; obj.'), (' (harmless)', '; safe'), (' (harmless, object)', '; safe, obj.'),
         (' (if interacted with)', ', interact'),
@@ -100,6 +101,29 @@ def shorten(val, aggressive = True):
         ('Fort. partial', '<i>Fort.</i>'), ('Will partial', '<i>Will</i>'), ('Ref. partial', '<i>Ref.</i>'),
         ('.…', '…'), (' and …', '…'), (' + ', '+')
     ]
+
+    for k, v in mapping:
+        val = val.replace(k, v)
+    return val
+
+def shorten_casting_time(val):
+    val = shorten(val, True).strip()
+    mapping = [
+        ('at least ', ''),
+        ('full-rd', 'full'), ('fullrd', 'full'),
+        ('Casting time ', ''), (', special ', ''),
+        (' or more', ''), (' or ', ''),
+        ('stdimmediate', 'std'),
+        ('standard', 'std'), ('rd', ' round'),
+        ('min', ' min'), (' of target', ''), (' created', ''),
+        (', plus length of memory to be altered', '…')
+    ]
+
+    if val[0] != "…" and val[0] != " " and val[0].isdigit() == False:
+        val = "1 " + val
+
+    # wtf?
+    mapping.append(('1 1', '1'))
 
     for k, v in mapping:
         val = val.replace(k, v)
@@ -124,7 +148,27 @@ def conditions(val):
         val = val.replace(k, v)
     return val
 
-def readSpells(file):
+def get_time_category(val):
+    val = timecategory.sub('', val)
+    if len(val) > 0 and val[0] != "1":
+        return "Long"
+    if "swift" in val:
+        return "Swift"
+    if "immediate" in val:
+        return "Immediate"
+    if "std" in val:
+        return "Standard"
+    if "full" in val:
+        return "Full-round"
+    if "round" in val:
+        return "Round"
+    return "Long"
+
+
+def is_time_special(val):
+    return '/' in val or '…' in val
+
+def read_spells(file):
     wb = load_workbook(filename = file, read_only=True)
     spellSheet = wb.sheetnames[0]
     r = wb[spellSheet]
@@ -160,6 +204,15 @@ def readSpells(file):
             if record[c] != "NULL":
                 card[c] = record[c]
 
+        if record["alchemist"] != "NULL" and int(card["alchemist"]) > 0 and int(card["alchemist"]) <= 6:
+            card["investigator"] = card["alchemist"]
+
+        if record["bard"] != "NULL" and int(card["bard"]) > 0 and int(card["bard"]) <= 6:
+            card["skald"] = card["bard"]
+
+        if record["cleric"] != "NULL" and int(card["cleric"]) <= 6:
+            card["warpriest"] = card["cleric"]
+
         card["id"] = int(record["id"])
         card["name"] = titlecase(record["name"])
 
@@ -179,10 +232,12 @@ def readSpells(file):
         for m in materials.finditer(record["components"]):
             card["materials"].append({ "kind" : m.group(1), "description" : m.group(2).capitalize() })
 
-        card["casting_time"] = shorten(record["casting_time"])
+        card["time"] = shorten_casting_time(record["casting_time"])
+        card["tc"] = get_time_category(card["time"])
+        card["ts"] = is_time_special(card["time"])
         card["range"] = shorten(rangeOnly.sub(r"\1", record["range"]))
         card["duration"] = shorten(record["duration"])
-        card["saving_throw"] = shorten(record["saving_throw"])
+        card["save"] = shorten(record["saving_throw"])
         card["resistance"] = shorten(record["spell_resistence"])
         spellArea = record["area"]
         spellTargets = record["targets"]
@@ -199,6 +254,7 @@ def readSpells(file):
         record["description"] = dicedc.sub(r"<strong>\1</strong>", record["description"])
         card["description"] = conditions(record["description"])
         card["source"] = record["source"]
+        card["sla"] = record["SLA_Level"]
 
         descript = []
         for d in descriptors:
@@ -207,21 +263,21 @@ def readSpells(file):
         if len(descript) > 0:
             card["descriptors"] = descript
 
-        domain = []
+        domain = {}
         for m in domains.finditer(record["domain"]):
-            domain.append({ "name" : m.group(1), "level" : m.group(2) })
+            domain[m.group(1)] = m.group(2)
         if len(domain) > 0:
             card["domain"] = domain
 
-        bloodline = []
+        bloodline = {}
         for m in domains.finditer(record["bloodline"]):
-            bloodline.append({ "name" : m.group(1), "level" : m.group(2) })
+            bloodline[m.group(1)] = int(m.group(2)) // 2
         if len(bloodline) > 0:
             card["bloodline"] = bloodline
 
-        patron = []
+        patron = {}
         for m in domains.finditer(record["patron"]):
-            patron.append({ "name" : m.group(1), "level" : m.group(2) })
+            patron[m.group(1)] = int(m.group(2)) // 2
         if len(patron) > 0:
             card["patron"] = patron
 
@@ -242,4 +298,4 @@ def readSpells(file):
 
     print(dumps(cards, ensure_ascii=False))
 
-readSpells('spell_full.xlsx')
+read_spells('spell_full.xlsx')

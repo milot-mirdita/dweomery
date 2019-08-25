@@ -1,8 +1,9 @@
 <template>
-  <div class="selection form-group">
+  <div class="selection form-group" :class="{'collapsed' : isCollapsed}">
+    <i :aria-label="isCollapsed ? 'Expand' : 'Collapse'" class="fa fa-fw collapse" :class="isCollapsed ? 'fa-chevron-down' : 'fa-chevron-right'" @click="isCollapsed = !isCollapsed"></i>
     <label class="label">{{name}}</label>
     <i aria-label="Clear selection" v-if="value.length > 0" @click="clear()" class="fa fa-broom float-right clear"></i>
-    <ul>
+    <ul v-if="isCollapsed == false">
       <li v-for="option in options" :class="{'selected' : isSelected(option)}" :key="optionValue(option)" @click="toggleOption(option)">
         <template v-if="symbols && typeof(symbols[option]) != 'undefined'">
           <span aria-hidden="true" class="magic-school" v-html="symbols[option]"></span>&nbsp;
@@ -40,6 +41,15 @@ export default {
       type: String,
       default: ''
     },
+    collapsed: {
+      type: Boolean,
+      default: false
+    },
+  },
+  data() {
+    return {
+      isCollapsed: this.collapsed,
+    };
   },
   methods: {
     optionText(option) {
@@ -83,6 +93,10 @@ export default {
 
 <style  lang="sass" scoped>
 .selection {
+  &.collapsed label {
+    margin-bottom: 0;
+  }
+
   ul {
     margin: 0; padding: 0;
     font-size: 0.8em;
@@ -100,6 +114,11 @@ export default {
       }
     }
   }
+}
+
+.collapse {
+  user-select: none;
+  cursor: pointer;
 }
 
 .magic-school {
