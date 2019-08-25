@@ -29,5 +29,5 @@ message AppRoot {
     optional bool in_selection = 11 [default = false];
     optional bool in_browser = 12 [default = true];
     optional bool in_edit = 13 [default = false];
-    optional bool search_similar = 14 [default = true];
+    optional bool search_similar = 14 [default = false];
 }
