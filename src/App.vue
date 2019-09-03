@@ -11,7 +11,7 @@
     </ul>
     <template v-else>
       <a class="navbar-brand">
-        Tiny Hut
+        Dweomery
       </a>
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav mr-auto">

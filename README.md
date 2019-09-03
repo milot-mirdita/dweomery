@@ -1,4 +1,4 @@
-# spell-cards
+# Dweomery - Pathfinder Spell Browser and Cards
 
 ## Project setup
 ```
