@@ -6,6 +6,7 @@ const SriPlugin = require('webpack-subresource-integrity');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const PostcssPresetEnvPlugin = require('postcss-preset-env');
+const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production';
@@ -82,6 +83,9 @@ module.exports = (env, argv) => {
             new VueLoaderPlugin(),
             new HtmlWebpackPlugin({
                 template: path.resolve(__dirname, './src/index.html')
+            }),
+            new FaviconsWebpackPlugin({
+                logo: path.resolve(__dirname, './logo.svg')
             }),
             new MiniCssExtractPlugin({
                 filename: 'style.[hash:7].css',
