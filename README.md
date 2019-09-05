@@ -6,7 +6,7 @@ npm install
 npm run proto
 npm run download
 npm run spells
-npm run measure-serve
-# download spells.json and place it in assets
+npm run build-measure
+npm run measure
 npm run build
 ```

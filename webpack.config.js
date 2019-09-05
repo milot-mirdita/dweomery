@@ -1,7 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CompressionPlugin = require('compression-webpack-plugin');
 const SriPlugin = require('webpack-subresource-integrity');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -23,7 +22,7 @@ module.exports = (env, argv) => {
             publicPath: '/',
             filename: !isPageMeasure 
                         ? 'build.[hash:7].js'
-                        : 'measure.[hash:7].js',
+                        : 'measure.js',
             crossOriginLoading: 'anonymous',
         },
         module: {
@@ -42,7 +41,12 @@ module.exports = (env, argv) => {
                     loader: 'babel-loader',
                     include: [
                         path.resolve(__dirname, './src'),
-                    ]
+                    ],
+                    options: {
+                        plugins: [
+                            "@babel/plugin-syntax-dynamic-import"
+                        ]
+                    }
                 },
                 {
                     test: /\.(png|jpe?g|gif|svg|ttf|woff2?|eot)(\?.*)?$/,
@@ -53,11 +57,11 @@ module.exports = (env, argv) => {
                 },
                 {
                     test: /\.css$/,
-                    use: [MiniCssExtractPlugin.loader, 'css-loader']
+                    use: [!isPageMeasure ? MiniCssExtractPlugin.loader : 'style-loader', 'css-loader']
                 },
                 {
                     test: /\.(s(a|c)ss)$/,
-                    use: [MiniCssExtractPlugin.loader, 'css-loader', {
+                    use: [!isPageMeasure ? MiniCssExtractPlugin.loader : 'style-loader', 'css-loader', {
                         loader: 'postcss-loader', options: {
                             ident: 'postcss',
                             plugins: () => [
@@ -82,22 +86,21 @@ module.exports = (env, argv) => {
             }),
             new VueLoaderPlugin(),
             new HtmlWebpackPlugin({
-                template: path.resolve(__dirname, './src/index.html')
-            }),
-            new FaviconsWebpackPlugin({
-                logo: path.resolve(__dirname, './logo.svg')
-            }),
-            new MiniCssExtractPlugin({
-                filename: 'style.[hash:7].css',
+                template: path.resolve(__dirname, './src/index.html'),
+                filename: !isPageMeasure ? 'index.html' : 'measure.html'
             }),
             new SriPlugin({
                 enabled: isProduction,
                 hashFuncNames: ['sha256', 'sha384']
             }),
-            new CompressionPlugin({
-                test: isProduction ? /\.(js|html|css|svg)(\?.*)?$/i : undefined,
-                minRatio: 1
-            })
+            ...(isPageMeasure ? [] : [
+                new MiniCssExtractPlugin({
+                    filename: 'style.[hash:7].css',
+                }),
+                new FaviconsWebpackPlugin({
+                    logo: path.resolve(__dirname, './logo.svg')
+                })
+            ])
         ],
         devtool: isProduction ? '#source-map' : '#eval-source-map'
     }

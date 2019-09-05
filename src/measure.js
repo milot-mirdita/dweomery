@@ -88,15 +88,9 @@ setTimeout(function waitForSpells() {
         setTimeout(waitForSpells, 1000);
         return;
     }
-    const url = window.URL.createObjectURL(new Blob([JSON.stringify(Spells)], {
-        type: 'application/json',
-        name: 'spells.json'
-    }));
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = 'spells.json';
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
+
+    const code = document.createElement('pre');
+    code.setAttribute("id", "json");
+    code.textContent = JSON.stringify(Spells);
+    document.querySelector('body').appendChild(code);
 }, 1000);
