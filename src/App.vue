@@ -37,8 +37,8 @@
             <a target="_blank" :href="'#print:' + location.hash.substr(1)" class="btn btn-primary"><i class="fa fa-fw fa-print"></i></a>
           </div>
           <div class="btn-group btn-group-sm mr-1" role="group" aria-label="Basic example">
-            <button @click="inAlphaOrder = false" type="button" class="btn" :class="inAlphaOrder == false ? 'btn-dark' : 'btn-light'"><i class="fa fa-fw fa-sort-numeric-up"></i></button>
-            <button @click="inAlphaOrder = true" type="button" class="btn" :class="inAlphaOrder == true ? 'btn-dark' : 'btn-light'"><i class="fa fa-fw fa-sort-alpha-up"></i></button>
+            <button @click="inAlphaOrder = false" type="button" class="btn" :class="inAlphaOrder == false ? 'btn-dark' : 'btn-light'"><i class="fa fa-fw fa-sort-numeric-down"></i></button>
+            <button @click="inAlphaOrder = true" type="button" class="btn" :class="inAlphaOrder == true ? 'btn-dark' : 'btn-light'"><i class="fa fa-fw fa-sort-alpha-down"></i></button>
           </div>
         </form>
         <form class="navbar-form" v-if="activeSpellbook > -1">
@@ -564,11 +564,12 @@ export default {
   }
 
   .caster-icon {
-    @extend .far;
+    color: rgba(0, 0, 0, 0.5);
+    @extend .fas;
     @extend .fa-fw;
-    @extend .fa-circle;
+    @extend .fa-circle-notch;
     &.active {
-      @extend .fa-dot-circle;
+      @extend .fa-circle;
       &:hover {
         @extend .fa-edit;
       }

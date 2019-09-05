@@ -36,7 +36,7 @@
 // @import "~bootstrap/scss/carousel";
 // @import "~bootstrap/scss/spinners";
 @import "~bootstrap/scss/utilities";
-@import "~bootstrap/scss/print";
+// @import "~bootstrap/scss/print";
 
 $fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
 // @import "~@fortawesome/fontawesome-free/scss/fontawesome";
@@ -50,11 +50,47 @@ $fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
 // @import '~@fortawesome/fontawesome-free/scss/animated';
 // @import '~@fortawesome/fontawesome-free/scss/rotated-flipped';
 // @import '~@fortawesome/fontawesome-free/scss/stacked';
-@import '~@fortawesome/fontawesome-free/scss/icons';
+// @import '~@fortawesome/fontawesome-free/scss/icons';
+.#{$fa-css-prefix}-book:before { content: fa-content($fa-var-book); }
+.#{$fa-css-prefix}-broom:before { content: fa-content($fa-var-broom); }
+.#{$fa-css-prefix}-chevron-down:before { content: fa-content($fa-var-chevron-down); }
+.#{$fa-css-prefix}-chevron-right:before { content: fa-content($fa-var-chevron-right); }
+.#{$fa-css-prefix}-circle:before { content: fa-content($fa-var-circle); }
+.#{$fa-css-prefix}-circle-notch:before { content: fa-content($fa-var-circle-notch); }
+.#{$fa-css-prefix}-edit:before { content: fa-content($fa-var-edit); }
+.#{$fa-css-prefix}-equals:before { content: fa-content($fa-var-equals); }
+.#{$fa-css-prefix}-grip-horizontal:before { content: fa-content($fa-var-grip-horizontal); }
+.#{$fa-css-prefix}-plus-circle:before { content: fa-content($fa-var-plus-circle); }
+.#{$fa-css-prefix}-print:before { content: fa-content($fa-var-print); }
+.#{$fa-css-prefix}-search:before { content: fa-content($fa-var-search); }
+.#{$fa-css-prefix}-sort-alpha-down:before { content: fa-content($fa-var-sort-alpha-down); }
+.#{$fa-css-prefix}-sort-numeric-down:before { content: fa-content($fa-var-sort-numeric-down); }
+.#{$fa-css-prefix}-stop-circle:before { content: fa-content($fa-var-stop-circle); }
 // @import '~@fortawesome/fontawesome-free/scss/screen-reader';
+// @import "~@fortawesome/fontawesome-free/scss/regular";
+// @import "~@fortawesome/fontawesome-free/scss/solid";
 
-@import "~@fortawesome/fontawesome-free/scss/regular";
-@import "~@fortawesome/fontawesome-free/scss/solid";
+@font-face {
+  font-family: 'Font Awesome 5 Free';
+  font-style: normal;
+  font-weight: 900;
+  font-display: $fa-font-display;
+  src: url('#{$fa-font-path}/fa-solid-900.eot');
+  src: url('#{$fa-font-path}/fa-solid-900.eot?#iefix') format('embedded-opentype'),
+  url('#{$fa-font-path}/fa-solid-900.woff2') format('woff2'),
+  url('#{$fa-font-path}/fa-solid-900.woff') format('woff'),
+  url('#{$fa-font-path}/fa-solid-900.ttf') format('truetype')
+}
+
+.fa,
+.fas {
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+}
+
+.github {
+  background-image: url(~@fortawesome/fontawesome-free/svgs/brands/github.svg);
+}
 
 @font-face {
     font-family: 'DnDMagicSchools';
