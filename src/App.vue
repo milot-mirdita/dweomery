@@ -528,8 +528,8 @@ export default {
   .browser {
     display: block;
   }
-  nav, .filter {
-    display: none;
+  nav, .filter, .navbar {
+    display: none !important;
   }
   .spells {
     display: table;
