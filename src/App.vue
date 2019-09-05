@@ -10,9 +10,7 @@
       </li>
     </ul>
     <template v-else>
-      <a class="navbar-brand">
-        Dweomery
-      </a>
+      <a class="navbar-brand">Dweomery</a>
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item" v-if="spellbooks.length > 0">
@@ -54,7 +52,10 @@
       </div>
     </template>
   </nav>
-  <div class="content browser" v-if="activeSpellbook > -1">
+  <div v-if="loading == true" class="content center">
+    Please wait until spells have been loaded.
+  </div>
+  <div class="content browser" v-else-if="activeSpellbook > -1">
     <form class="filter">
       <div class="form-group" v-if="inBrowser">
         <label>Spell Level</label>
@@ -152,18 +153,8 @@ import Card from './components/Card.vue'
 import Selection from './components/Selection.vue'
 import SpellLevel from './components/SpellLevel.vue'
 import Modal from './components/Modal.vue'
-
 import SmithWaterman from './lib/SmithWaterman'
 
-import Spells from './assets/spells.json'
-const SpellNames = Object.keys(Spells);
-const SpellSchools = new Set([...new Set(Object.values(Spells).map(spell => spell.school))].sort());
-const SpellSubschools = new Set([...new Set(Object.values(Spells).map(spell => spell.subschools).flat())].sort());
-const SpellTimes = new Set([...new Set(Object.values(Spells).map(spell => spell.tc).flat())].sort());
-const SpellDomains = new Set([...new Set(Object.values(Spells).filter(spell => typeof(spell.domain) !== "undefined").map(spell => Object.keys(spell.domain)).flat())].sort());
-const SpellPatrons = new Set([...new Set(Object.values(Spells).filter(spell => typeof(spell.patron) !== "undefined").map(spell => Object.keys(spell.patron)).flat())].sort());
-const SpellBloodlines = new Set([...new Set(Object.values(Spells).filter(spell => typeof(spell.bloodline) !== "undefined").map(spell => Object.keys(spell.bloodline)).flat())].sort());
-const SpellDescriptors = new Set(["", ...new Set(Object.values(Spells).filter(spell => typeof(spell.descriptors) !== "undefined").map(spell => spell.descriptors).flat())].sort());
 const Casters = {
   "sor" : "Sorcerer",
   "wiz" : "Wizard",
@@ -242,7 +233,17 @@ export default {
         inEdit: false,
         searchSimilar: false,
         shouldPrint: false,
-        location: window.location
+        location: window.location,
+        spells: [],
+        spellnames: [],
+        schools: [],
+        subschools: [],
+        times: [],
+        domains: [],
+        patrons: [],
+        bloodlines: [],
+        descriptors: [],
+        loading: true,
     }
   },
   created() {
@@ -278,33 +279,36 @@ export default {
           }, { deep: true });
         }
     }
-  },
-  mounted() {
-    if (this.shouldPrint == false) {
-      return;
-    }
-    this.$destroy();
-    document.querySelector('nav').remove();
-    document.querySelector('.filter').remove();
+    import(/* webpackChunkName: "spells" */ './assets/spells.json').then(Spells => {
+        this.spells = Spells;
+        this.spellnames = Object.keys(Spells);
+        this.schools = new Set([...new Set(Object.values(Spells).map(spell => spell.school))].sort());
+        this.subschools = new Set([...new Set(Object.values(Spells).map(spell => spell.subschools).flat())].sort());
+        this.times = new Set([...new Set(Object.values(Spells).map(spell => spell.tc).flat())].sort());
+        this.domains = new Set([...new Set(Object.values(Spells).filter(spell => typeof(spell.domain) !== "undefined").map(spell => Object.keys(spell.domain)).flat())].sort());
+        this.patrons = new Set([...new Set(Object.values(Spells).filter(spell => typeof(spell.patron) !== "undefined").map(spell => Object.keys(spell.patron)).flat())].sort());
+        this.bloodlines = new Set([...new Set(Object.values(Spells).filter(spell => typeof(spell.bloodline) !== "undefined").map(spell => Object.keys(spell.bloodline)).flat())].sort());
+        this.descriptors = new Set(["", ...new Set(Object.values(Spells).filter(spell => typeof(spell.descriptors) !== "undefined").map(spell => spell.descriptors).flat())].sort());
+        this.loading = false;
+        this.$nextTick(() => {
+          if (this.shouldPrint == true) {
+            this.$destroy();
+            document.querySelector('nav').remove();
+            document.querySelector('.filter').remove();
+          }
+        });
+    });
   },
   computed: {
-    schools: () => SpellSchools,
-    subschools: () => SpellSubschools,
     casters: () => Casters,
     symbols: () => SchoolSymbols,
-    times: () => SpellTimes,
     components: () => SpellComponents,
-    domains: () => SpellDomains,
-    patrons: () => SpellPatrons,
-    bloodlines: () => SpellBloodlines,
-    descriptors: () => SpellDescriptors,
     sourcebooks: function() {
       if (this.currentSpellbook == null) {
         return {};
       }
       const caster = this.currentSpellbook.caster;
-      // Fixme: mixed classes
-      var sources = Object.values(Spells)
+      var sources = Object.values(this.spells)
         .filter(spell => spell[caster] >= 0)
         .map(spell => spell.source).flat();
       var counter = {};
@@ -344,9 +348,9 @@ export default {
       }
       const caster = this.currentSpellbook.caster;
       const isInvestigator = caster == "investigator";
-      const names = this.inBrowser ? SpellNames : [...this.currentSpellbook.spells];
+      const names = this.inBrowser ? this.spellnames : [...this.currentSpellbook.spells];
       var filtered = names.filter(key => {
-        const spell = Spells[key];
+        const spell = this.spells[key];
         return (this.school.length == 0 || this.school.includes(spell["school"]))
           && (this.subschool.length == 0 || [...this.subschool].filter(s => spell["subschools"].includes(s)).length > 0)
           && (this.descriptor.length == 0 || [...this.descriptor].filter(s => (s == "" && ("descriptors" in spell) == false) || ("descriptors" in spell && spell["descriptors"].includes(s))).length > 0)
@@ -356,7 +360,7 @@ export default {
       });
       if (this.inBrowser) {
         filtered = filtered.filter(key => {
-          const spell = Spells[key];
+          const spell = this.spells[key];
           return ((this.currentSpellbook.extraSpells.domain.some(d => "domain" in spell && Object.keys(spell["domain"]).some(sd => (sd == d && spell["domain"][sd] >= this.spellRange[0] && spell["domain"][sd] <= this.spellRange[1]))))
                       || (this.currentSpellbook.extraSpells.bloodline.some(d => "bloodline" in spell && Object.keys(spell["bloodline"]).some(sd => (sd == d && spell["bloodline"][sd] >= this.spellRange[0] && spell["bloodline"][sd] <= this.spellRange[1]))))
                       || (this.currentSpellbook.extraSpells.patron.some(d => "patron" in spell && Object.keys(spell["patron"]).some(sd => (sd == d && spell["patron"][sd] >= this.spellRange[0] && spell["patron"][sd] <= this.spellRange[1])))))
@@ -368,31 +372,31 @@ export default {
         const search = this.query.toLowerCase();
         if (this.query.length > 2 && this.searchSimilar) {
           filtered = filtered.map(id => {
-            const res = { s: id, d: SmithWaterman(search, Spells[id].name.toLowerCase()) };
+            const res = { s: id, d: SmithWaterman(search, this.spells[id].name.toLowerCase()) };
             return res;
           }).sort((a, b) => {
             return +(a.d < b.d) || +(a.d === b.d) - 1;
           }).filter(spell => spell.d > 2).map(spell => spell.s);
         } else {
           filtered = filtered.filter(id => {
-            return Spells[id].name.toLowerCase().startsWith(search);
+            return this.spells[id].name.toLowerCase().startsWith(search);
           })
         }
       } else {
         if (this.inAlphaOrder == true) {
           filtered = filtered.sort((a, b) => {
-            if (Spells[a].name < Spells[b].name)
+            if (this.spells[a].name < this.spells[b].name)
               return -1;
             return 1;
           })
         } else {
           filtered = filtered.sort((a, b) => {
-            if (Spells[a][caster] === Spells[b][caster]) {
-              if (Spells[a].name < Spells[b].name)
+            if (this.spells[a][caster] === this.spells[b][caster]) {
+              if (this.spells[a].name < this.spells[b].name)
                 return -1;
               return 1;
             }
-            if (Spells[a][caster] < Spells[b][caster])
+            if (this.spells[a][caster] < this.spells[b][caster])
               return -1;
             return 1;
           })
@@ -402,20 +406,24 @@ export default {
       if (this.shouldPrint) {
         var expanded = [];
         for (var i = 0; i < filtered.length; ++i) {
-          const pages =  Spells[filtered[i]].description.length;
-          for (var j = 0; j < pages; ++j) {
-            var clone = JSON.parse(JSON.stringify(Spells[filtered[i]]));
-            clone.description = Spells[filtered[i]].description[j];
-            if (j != pages - 1) {
-              clone.materials = [];
+          if (Array.isArray(this.spells[filtered[i]].description)) {
+            const pages = this.spells[filtered[i]].description.length;
+            for (var j = 0; j < pages; ++j) {
+              var clone = JSON.parse(JSON.stringify(this.spells[filtered[i]]));
+              clone.description = this.spells[filtered[i]].description[j];
+              if (j != pages - 1) {
+                clone.materials = [];
+              }
+              expanded.push({ name: filtered[i] + '-' + j, spell: clone});
             }
-            expanded.push({ name: filtered[i] + '-' + j, spell: clone});
+          } else {
+            expanded.push({ name: filtered[i] + '-' + j, spell: this.spells[filtered[i]]});
           }
         }
         return expanded;
       } else {
         return filtered.map(name => {
-          return { name : name, spell: Spells[name] }
+          return { name : name, spell: this.spells[name] }
         });
       }
     }
