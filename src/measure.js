@@ -2,6 +2,7 @@ import Vue from 'vue'
 import renderer from 'vue-server-renderer/basic'
 import Card from './components/Card.vue'
 import Common from './common.scss';
+import Measure from './measure.scss';
 import Spells from './assets/spells.json';
 
 Vue.config.productionTip = false

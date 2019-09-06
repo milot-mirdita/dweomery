@@ -413,6 +413,7 @@ export default {
               clone.description = this.spells[filtered[i]].description[j];
               if (j != pages - 1) {
                 clone.materials = [];
+                clone.expanded = true;
               }
               expanded.push({ name: filtered[i] + '-' + j, spell: clone});
             }

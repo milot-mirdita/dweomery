@@ -33,7 +33,7 @@
             <strong>{{a.kind}}</strong>&thinsp;<span v-html="a.description"></span>
         </span>
       </div>
-      <div class="text" v-html="description">
+      <div class="text" :class="card.expanded ? 'expanded' : ''" v-html="description">
       </div>
     </div>
     <div class="descriptors">
@@ -81,7 +81,7 @@ export default {
 }
 </script>
 
-<style scoped lang="sass">
+<style lang="sass">
 .card {
   width: 63mm;
   height: 88mm;
@@ -133,7 +133,7 @@ export default {
     position: relative;
     display: flex;
     flex-direction: column;
-    height: 81mm;
+    height: 80mm;
 
     .fa-book {
       @media print {
@@ -197,6 +197,15 @@ export default {
       overflow-y: scroll;
       overflow-x: hidden;
       max-height: 100%;
+
+      &.expanded {
+        overflow-y: hidden;
+        &:after {
+          content: "";
+          display: inline-block;
+          width: 100%;
+        }
+      }
     }
 
     @media print {
