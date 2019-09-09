@@ -59,7 +59,7 @@
     <form class="filter">
       <div class="form-group" v-if="inBrowser">
         <label>Spell Level</label>
-        <SpellLevel style="margin-top:-10px" v-model="spellRange"></SpellLevel>
+        <SpellLevel style="margin-top:-10px" :range="range" v-model="spellRange"></SpellLevel>
       </div>
       <selection
         name="Schools"
@@ -254,6 +254,12 @@ export default {
     casters: () => Casters,
     symbols: () => SchoolSymbols,
     components: () => SpellComponents,
+    range: function() {
+      if (this.currentSpellbook == null) {
+        return { min: 0, max: 9 };
+      }
+      return CasterRange[this.currentSpellbook.caster];
+    },
     sourcebooks: function() {
       if (this.currentSpellbook == null) {
         return {};

@@ -1,15 +1,15 @@
 <template>
 <div class="levels">
-    <span @click="level(0)" @mouseover="hover = 0" @mouseleave="hover = null" aria-label="0" :class="['spell-0', 'triangle', 'up', { 'active':   (min <= 0 && 0 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 0 && 0 <= Math.max(hover, firstSelection)) }]"></span>
-    <span @click="level(1)" @mouseover="hover = 1" @mouseleave="hover = null" aria-label="1" :class="['spell-1', 'triangle', 'down', { 'active': (min <= 1 && 1 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 1 && 1 <= Math.max(hover, firstSelection)) }]"></span>
-    <span @click="level(2)" @mouseover="hover = 2" @mouseleave="hover = null" aria-label="2" :class="['spell-2', 'triangle', 'up', { 'active':   (min <= 2 && 2 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 2 && 2 <= Math.max(hover, firstSelection)) }]"></span>
-    <span @click="level(3)" @mouseover="hover = 3" @mouseleave="hover = null" aria-label="3" :class="['spell-3', 'triangle', 'down', { 'active': (min <= 3 && 3 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 3 && 3 <= Math.max(hover, firstSelection)) }]"></span>
-    <span @click="level(4)" @mouseover="hover = 4" @mouseleave="hover = null" aria-label="4" :class="['spell-4', 'triangle', 'up', { 'active':   (min <= 4 && 4 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 4 && 4 <= Math.max(hover, firstSelection)) }]"></span>
-    <span @click="level(5)" @mouseover="hover = 5" @mouseleave="hover = null" aria-label="5" :class="['spell-5', 'triangle', 'down', { 'active': (min <= 5 && 5 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 5 && 5 <= Math.max(hover, firstSelection)) }]"></span>
-    <span @click="level(6)" @mouseover="hover = 6" @mouseleave="hover = null" aria-label="6" :class="['spell-6', 'triangle', 'up', { 'active':   (min <= 6 && 6 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 6 && 6 <= Math.max(hover, firstSelection)) }]"></span>
-    <span @click="level(7)" @mouseover="hover = 7" @mouseleave="hover = null" aria-label="7" :class="['spell-7', 'triangle', 'down', { 'active': (min <= 7 && 7 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 7 && 7 <= Math.max(hover, firstSelection)) }]"></span>
-    <span @click="level(8)" @mouseover="hover = 8" @mouseleave="hover = null" aria-label="8" :class="['spell-8', 'triangle', 'up', { 'active':   (min <= 8 && 8 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 8 && 8 <= Math.max(hover, firstSelection)) }]"></span>
-    <span @click="level(9)" @mouseover="hover = 9" @mouseleave="hover = null" aria-label="9" :class="['spell-9', 'triangle', 'down', { 'active': (min <= 9 && 9 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 9 && 9 <= Math.max(hover, firstSelection)) }]"></span>
+    <span v-if="range.min <= 0 && 0 <= range.max" @click="level(0)" @mouseover="hover = 0" @mouseleave="hover = null" aria-label="0" :class="['spell-0', 'triangle', 'up', { 'active':   (min <= 0 && 0 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 0 && 0 <= Math.max(hover, firstSelection)) }]"></span>
+    <span v-if="range.min <= 1 && 1 <= range.max" @click="level(1)" @mouseover="hover = 1" @mouseleave="hover = null" aria-label="1" :class="['spell-1', 'triangle', 'down', { 'active': (min <= 1 && 1 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 1 && 1 <= Math.max(hover, firstSelection)) }]"></span>
+    <span v-if="range.min <= 2 && 2 <= range.max" @click="level(2)" @mouseover="hover = 2" @mouseleave="hover = null" aria-label="2" :class="['spell-2', 'triangle', 'up', { 'active':   (min <= 2 && 2 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 2 && 2 <= Math.max(hover, firstSelection)) }]"></span>
+    <span v-if="range.min <= 3 && 3 <= range.max" @click="level(3)" @mouseover="hover = 3" @mouseleave="hover = null" aria-label="3" :class="['spell-3', 'triangle', 'down', { 'active': (min <= 3 && 3 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 3 && 3 <= Math.max(hover, firstSelection)) }]"></span>
+    <span v-if="range.min <= 4 && 4 <= range.max" @click="level(4)" @mouseover="hover = 4" @mouseleave="hover = null" aria-label="4" :class="['spell-4', 'triangle', 'up', { 'active':   (min <= 4 && 4 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 4 && 4 <= Math.max(hover, firstSelection)) }]"></span>
+    <span v-if="range.min <= 5 && 5 <= range.max" @click="level(5)" @mouseover="hover = 5" @mouseleave="hover = null" aria-label="5" :class="['spell-5', 'triangle', 'down', { 'active': (min <= 5 && 5 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 5 && 5 <= Math.max(hover, firstSelection)) }]"></span>
+    <span v-if="range.min <= 6 && 6 <= range.max" @click="level(6)" @mouseover="hover = 6" @mouseleave="hover = null" aria-label="6" :class="['spell-6', 'triangle', 'up', { 'active':   (min <= 6 && 6 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 6 && 6 <= Math.max(hover, firstSelection)) }]"></span>
+    <span v-if="range.min <= 7 && 7 <= range.max" @click="level(7)" @mouseover="hover = 7" @mouseleave="hover = null" aria-label="7" :class="['spell-7', 'triangle', 'down', { 'active': (min <= 7 && 7 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 7 && 7 <= Math.max(hover, firstSelection)) }]"></span>
+    <span v-if="range.min <= 8 && 8 <= range.max" @click="level(8)" @mouseover="hover = 8" @mouseleave="hover = null" aria-label="8" :class="['spell-8', 'triangle', 'up', { 'active':   (min <= 8 && 8 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 8 && 8 <= Math.max(hover, firstSelection)) }]"></span>
+    <span v-if="range.min <= 9 && 9 <= range.max" @click="level(9)" @mouseover="hover = 9" @mouseleave="hover = null" aria-label="9" :class="['spell-9', 'triangle', 'down', { 'active': (min <= 9 && 9 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 9 && 9 <= Math.max(hover, firstSelection)) }]"></span>
 </div>
 </template>
 
@@ -17,7 +17,8 @@
 export default {
   name: 'SpellLevel',
   props: {
-    value: Array
+    value: Array,
+    range: Object
   },
   data() {
     return {
