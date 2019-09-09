@@ -64,7 +64,7 @@
       <selection
         name="Schools"
         v-model="school"
-        :options="schools" :symbols="symbols" multiple
+        :options="schools" :symbols="symbols" :colors="colors" multiple
         ></selection>
       <selection
         name="Subschools"
@@ -253,6 +253,7 @@ export default {
   computed: {
     casters: () => Casters,
     symbols: () => SchoolSymbols,
+    colors: () => SchoolColors,
     components: () => SpellComponents,
     range: function() {
       if (this.currentSpellbook == null) {

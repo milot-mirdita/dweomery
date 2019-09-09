@@ -4,7 +4,12 @@
     <label class="label">{{name}}</label>
     <i aria-label="Clear selection" v-if="value.length > 0" @click="clear()" class="fa fa-broom float-right clear"></i>
     <ul v-if="isCollapsed == false">
-      <li v-for="option in options" :class="{'selected' : isSelected(option)}" :key="optionValue(option)" @click="toggleOption(option)">
+      <li 
+        v-for="option in options" 
+        :class="{'selected' : isSelected(option)}" 
+        :key="optionValue(option)" 
+        @click="toggleOption(option)" 
+        :style="{'border-color' : (colors && typeof(colors[option])) ? colors[option] : null }">
         <template v-if="symbols && typeof(symbols[option]) != 'undefined'">
           <span aria-hidden="true" class="magic-school" v-html="symbols[option]"></span>&nbsp;
         </template>
@@ -30,6 +35,10 @@ export default {
       default: () => []
     },
     symbols: {
+      type: Object,
+      default: null
+    },
+    colors: {
       type: Object,
       default: null
     },
