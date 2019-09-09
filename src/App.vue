@@ -313,7 +313,7 @@ export default {
           && (this.subschool.length == 0 || [...this.subschool].filter(s => spell["subschools"].includes(s)).length > 0)
           && (this.descriptor.length == 0 || [...this.descriptor].filter(s => (s == "" && ("descriptors" in spell) == false) || ("descriptors" in spell && spell["descriptors"].includes(s))).length > 0)
           && (this.time.length == 0 || this.time.includes(spell["tc"]))
-          && (this.component.length == 0 || (spell["components"].length == this.component.length && spell["components"].every(s => this.component.includes(s))))
+          && (this.component.length == 0 || (spell["components"] && spell["components"].length == this.component.length && spell["components"].every(s => this.component.includes(s))))
           && (this.sourcebook.length == 0 || this.sourcebook.includes(spell["source"]));
       });
       if (this.inBrowser) {
