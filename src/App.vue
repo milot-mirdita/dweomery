@@ -100,7 +100,7 @@
         :key="spells.name"
         :card="spells.spell"
         :caster="currentSpellbook.caster"
-        :known-spells="shouldPrint ? [] : currentSpellbook.spells"
+        :known-spells="shouldPrint || !inBrowser ? [] : currentSpellbook.spells"
         @selection="toggleSpell(spells.name)"></card>
     </div>
     <div class="spells" v-else>
