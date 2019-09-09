@@ -43,7 +43,7 @@
         </form>
         <form class="navbar-form" v-if="activeSpellbook > -1">
           <div class="input-group input-group-sm">
-            <input class="form-control form-control-sm" v-model="query" placeholder="Spellname" type="text" />
+            <input class="form-control form-control-sm" v-model="query" placeholder="Spell name" type="text" />
             <div class="input-group-append">
               <span @click="searchSimilar = !searchSimilar" class="input-group-text"><i :class="['fa', 'fa-fw', searchSimilar ? 'fa-search' : 'fa-equals' ]"></i></span>
             </div>
@@ -73,7 +73,7 @@
         :collapsed="true"
         ></selection>
       <selection
-        name="Casting Time"
+        name="Casting time"
         v-model="time"
         :options="times" multiple
         ></selection>
@@ -89,7 +89,7 @@
         empty="None"
         ></selection>
       <selection
-        name="Sourcebooks"
+        name="Source books"
         v-model="sourcebook"
         :options="sourcebooks" multiple
         :collapsed="true"
