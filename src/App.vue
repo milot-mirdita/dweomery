@@ -49,6 +49,9 @@
             </div>
           </div>
         </form>
+        <a href="https://github.com/milot-mirdita/dweomery/wiki" class="nav-link p-0 ml-3">
+          <img alt="GitHub" src="~@fortawesome/fontawesome-free/svgs/brands/github.svg" style="width:32px; height:32px;">
+        </a>
       </div>
     </template>
   </nav>
