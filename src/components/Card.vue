@@ -44,18 +44,8 @@
 </template>
 
 <script>
-const SchoolColors = {
-  "Abjuration" : "LightSteelBlue",
-  "Conjuration" : "MidnightBlue",
-  "Divination" : "indigo",
-  "Enchantment" : "DarkOliveGreen",
-  "Evocation" : "maroon",
-  "Illusion" : "DarkSalmon",
-  "Necromancy" : "dimgray",
-  "Transmutation" : "DarkGoldenrod",
-  "Universal" : "Gold",
-  "See Text" : "LightSteelBlue"
-}
+import { SchoolColors } from '../lib/constants'
+
 export default {
   name: 'Card',
   props: {

@@ -154,56 +154,7 @@ import Selection from './components/Selection.vue'
 import SpellLevel from './components/SpellLevel.vue'
 import Modal from './components/Modal.vue'
 import SmithWaterman from './lib/SmithWaterman'
-
-const Casters = {
-  "sor" : "Sorcerer",
-  "wiz" : "Wizard",
-  "cleric" : "Cleric",
-  "druid" : "Druid",
-  "ranger" : "Ranger",
-  "bard" : "Bard",
-  "paladin" : "Paladin",
-  "alchemist" : "Alchemist",
-  "summoner" : "Summoner",
-  "summoner_unchained" : "Unchained Summoner",
-  "witch" : "Witch",
-  "inquisitor" : "Inquisitor",
-  "oracle" : "Oracle",
-  "antipaladin" : "Antipaladin",
-  "magus" : "Magus",
-  "adept" : "Adept",
-  "bloodrager" : "Bloodrager",
-  "shaman" : "Shaman",
-  "psychic" : "Psychic",
-  "medium" : "Medium",
-  "mesmerist" : "Mesmerist",
-  "occultist" : "Occultist",
-  "spiritualist" : "Spiritualist",
-  "skald" : "Skald",
-  "investigator" : "Investigator",
-  "hunter" : "Hunter",
-  "warpriest" : "Warpriest",
-};
-
-const SchoolSymbols = {
-  "Abjuration" : "&#xE000;",
-  "Conjuration" : "&#xE001;",
-  "Divination" : "&#xE002;",
-  "Enchantment" : "&#xE003;",
-  "Evocation" : "&#xE007;",
-  "Illusion" : "&#xE004;",
-  "Necromancy" : "&#xE005;",
-  "Transmutation" : "&#xE006;",
-  "Universal" : "&#xE008;",
-};
-
-const SpellComponents = [
-  { kind: "V", description: "Verbal" },
-  { kind: "S", description: "Somatic" },
-  { kind: "M", description: "Material" },
-  { kind: "F", description: "Focus" },
-  { kind: "DF", description: "Divine focus" },
-];
+import { Casters, CasterRange, SchoolSymbols, SchoolColors, SpellComponents } from './lib/constants'
 
 import { SpellCard } from './proto'
 import { length, encode, decode } from '@protobufjs/base64'
