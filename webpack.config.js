@@ -7,23 +7,36 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const PostcssPresetEnvPlugin = require('postcss-preset-env');
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 
+const isDevServer = process.env.WEBPACK_DEV_SERVER;
+const serveLanding = process.env.SERVE_LANDING;
+
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production';
     const isPageMeasure = typeof (env) != 'undefined' && env.PAGE_MEASURE === true;
 
     var exports = {
-        entry: !isPageMeasure 
-                ? path.resolve(__dirname, './src/main.js')
-                : path.resolve(__dirname, './src/measure.js'),
+        entry: isPageMeasure
+            ? path.resolve(__dirname, './src/measure.js')
+            : serveLanding
+                ? path.resolve(__dirname, './src/landing.js')
+                : {
+                    app: path.resolve(__dirname, './src/app.js'),
+                    landing: path.resolve(__dirname, './src/landing.js')
+                },
         target: 'web',
         mode: argv.mode,
         output: {
             path: path.resolve(__dirname, './dist'),
             publicPath: '/',
             filename: !isPageMeasure 
-                        ? 'build.[hash:7].js'
-                        : 'measure.js',
+                ? (isDevServer ? '[name].[hash].bundle.js' : '[name].[chunkhash].bundle.js')
+                : 'measure.js',
             crossOriginLoading: 'anonymous',
+        },
+        optimization: {
+            splitChunks: {
+                chunks: "all"
+            }
         },
         module: {
             rules: [
@@ -85,22 +98,45 @@ module.exports = (env, argv) => {
                 }
             }),
             new VueLoaderPlugin(),
-            new HtmlWebpackPlugin({
-                template: path.resolve(__dirname, './src/index.html'),
-                filename: !isPageMeasure ? 'index.html' : 'measure.html'
-            }),
             new SriPlugin({
                 enabled: isProduction,
                 hashFuncNames: ['sha256', 'sha384']
             }),
-            ...(isPageMeasure ? [] : [
+            ...(isPageMeasure
+                ? [
+                    new HtmlWebpackPlugin({
+                        template: path.resolve(__dirname, './src/app.html'),
+                        filename: 'measure.html'
+                    }),
+                ] 
+                : serveLanding
+                    ? [
+                        new HtmlWebpackPlugin({
+                            template: path.resolve(__dirname, './src/landing.html'),
+                            filename: 'index.html',
+                        })
+                    ]
+                    : [
+                        new HtmlWebpackPlugin({
+                            template: path.resolve(__dirname, './src/app.html'),
+                            filename: isDevServer ? 'index.html' : 'app.html',
+                            excludeChunks: ['landing'],
+                        }),
+                        new HtmlWebpackPlugin({
+                            template: path.resolve(__dirname, './src/landing.html'),
+                            filename: 'landing.html',
+                            excludeChunks: ['app'],
+                        }),
+                    ]
+            ),
+            ...[
                 new MiniCssExtractPlugin({
-                    filename: 'style.[hash:7].css',
+                    filename: 'style.[chunkhash].css',
                 }),
                 new FaviconsWebpackPlugin({
                     logo: path.resolve(__dirname, './src/assets/logo.svg')
                 })
-            ])
+            ]
         ],
         devtool: isProduction ? '#source-map' : '#eval-source-map'
     }
