@@ -110,6 +110,16 @@ $fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
   min-height: 100vh;
 }
 
+.center {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;

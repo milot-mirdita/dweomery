@@ -431,16 +431,6 @@ export default {
 <style lang="sass">
 @import "common";
 
-.center {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: auto;
-}
-
 .browser {
   display: flex;
   flex-direction: row;
