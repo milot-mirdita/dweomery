@@ -53,13 +53,13 @@ export default {
     caster: String,
     knownSpells: {
       type: Array,
-      default: []
+      default: () => []
     }
   },
   computed: {
     colors: () => SchoolColors,
     description: function() {
-      var description = this.card.description;
+      var description = Array.isArray(this.card.description) ? this.card.description.join('') : this.card.description;
       const mat = this.card.materials;
       description += '<!--COMP-->'
       for (var i in mat) {
