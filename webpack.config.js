@@ -98,7 +98,7 @@ module.exports = (env, argv) => {
                     filename: 'style.[hash:7].css',
                 }),
                 new FaviconsWebpackPlugin({
-                    logo: path.resolve(__dirname, './logo.svg')
+                    logo: path.resolve(__dirname, './src/assets/logo.svg')
                 })
             ])
         ],
