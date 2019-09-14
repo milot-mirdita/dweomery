@@ -6,6 +6,7 @@ const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const PostcssPresetEnvPlugin = require('postcss-preset-env');
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
+const CompressionPlugin = require('compression-webpack-plugin');
 
 const isDevServer = process.env.WEBPACK_DEV_SERVER;
 const serveLanding = process.env.SERVE_LANDING;
@@ -101,6 +102,10 @@ module.exports = (env, argv) => {
             new SriPlugin({
                 enabled: isProduction,
                 hashFuncNames: ['sha256', 'sha384']
+            }),
+            new CompressionPlugin({
+                // test: isProduction ? /\.(js|html|css|svg|woff2?|eot)(\?.*)?$/i : undefined,
+                minRatio: 1
             }),
             ...(isPageMeasure
                 ? [
