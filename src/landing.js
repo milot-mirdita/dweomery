@@ -2,8 +2,8 @@ import Vue from 'vue'
 import Style from './common.scss'
 import Card from './components/Card.vue'
 
-import * as OfflinePluginRuntime from 'offline-plugin/runtime'
-OfflinePluginRuntime.install()
+// import * as OfflinePluginRuntime from 'offline-plugin/runtime'
+// OfflinePluginRuntime.install()
 
 Vue.config.productionTip = false;
 
