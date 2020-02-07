@@ -250,6 +250,7 @@ export default {
             this.$destroy();
             document.querySelector('nav').remove();
             document.querySelector('.filter').remove();
+            window.print();
           }
         });
     });
