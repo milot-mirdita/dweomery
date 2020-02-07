@@ -234,6 +234,7 @@ export default {
         }
     }
     import(/* webpackChunkName: "spells" */ './assets/spells.json').then(Spells => {
+        Spells = Spells.default;
         this.spells = Spells;
         this.spellnames = Object.keys(Spells);
         this.schools = new Set([...new Set(Object.values(Spells).map(spell => spell.school))].sort());
