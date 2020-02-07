@@ -67,7 +67,8 @@ module.exports = (env, argv) => {
                     test: /\.(png|jpe?g|gif|svg|ttf|woff2?|eot)(\?.*)?$/,
                     loader: 'file-loader',
                     options: {
-                        name: '[name].[hash:7].[ext]'
+                        name: '[name].[hash:7].[ext]',
+                        esModules: false
                     }
                 },
                 {
@@ -88,7 +89,7 @@ module.exports = (env, argv) => {
             ]
         },
         resolve: {
-            extensions: ['.js', '.vue', '.json'],
+            extensions: ['.js', '.vue'],
             alias: !isPageMeasure ? {
                 'vue$': 'vue/dist/vue.runtime.esm.js',
             } : {}
