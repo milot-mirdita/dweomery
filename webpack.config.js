@@ -141,7 +141,15 @@ module.exports = (env, argv) => {
                     filename: 'style.[chunkhash].css',
                 }),
                 new FaviconsWebpackPlugin({
-                    logo: path.resolve(__dirname, './src/assets/logo.svg')
+                    logo: path.resolve(__dirname, './src/assets/logo.svg'),
+                    prefix: 'fav.[hash:7]',
+                    favicons: {
+                        icons: {
+                            coast: false,
+                            windows: false,
+                            yandex: false
+                        }
+                    }
                 })
             ],
             // ...[
