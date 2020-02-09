@@ -10,6 +10,7 @@
     <span v-if="range.min <= 7 && 7 <= range.max" @click="level(7)" @mouseover="hover = 7" @mouseleave="hover = null" aria-label="7" :class="['spell-7', 'triangle', 'down', { 'active': (min <= 7 && 7 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 7 && 7 <= Math.max(hover, firstSelection)) }]"></span>
     <span v-if="range.min <= 8 && 8 <= range.max" @click="level(8)" @mouseover="hover = 8" @mouseleave="hover = null" aria-label="8" :class="['spell-8', 'triangle', 'up', { 'active':   (min <= 8 && 8 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 8 && 8 <= Math.max(hover, firstSelection)) }]"></span>
     <span v-if="range.min <= 9 && 9 <= range.max" @click="level(9)" @mouseover="hover = 9" @mouseleave="hover = null" aria-label="9" :class="['spell-9', 'triangle', 'down', { 'active': (min <= 9 && 9 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 9 && 9 <= Math.max(hover, firstSelection)) }]"></span>
+    <span v-if="range.min <= 10 && 10 <= range.max" @click="level(10)" @mouseover="hover = 10" @mouseleave="hover = null" aria-label="10" :class="['spell-10', 'triangle', 'up', { 'active': (min <= 10 && 10 <= max) || (firstSelection != null && Math.min(hover, firstSelection) <= 10 && 10 <= Math.max(hover, firstSelection)) }]"></span>
 </div>
 </template>
 
@@ -132,6 +133,7 @@ export default {
 .spell-7.up.active, .spell-7.up:hover { border-color: var(--t) var(--t) #3B0F70 var(--t); color: #eee; }
 .spell-8.up.active, .spell-8.up:hover { border-color: var(--t) var(--t) #150E37 var(--t); color: #fff; }
 .spell-9.up.active, .spell-9.up:hover { border-color: var(--t) var(--t) #000004 var(--t); color: #fff; }
+.spell-10.up.active, .spell-10.up:hover { border-color: var(--t) var(--t) #000000 var(--t); color: #fff; }
 
 .spell-0.down.active, .spell-0.down:hover { border-color: #FECE91 var(--t) var(--t) var(--t); color: #111; }
 .spell-1.down.active, .spell-1.down:hover { border-color: #FE9F6D var(--t) var(--t) var(--t); color: #111; }
@@ -143,4 +145,7 @@ export default {
 .spell-7.down.active, .spell-7.down:hover { border-color: #3B0F70 var(--t) var(--t) var(--t); color: #eee; }
 .spell-8.down.active, .spell-8.down:hover { border-color: #150E37 var(--t) var(--t) var(--t); color: #fff; }
 .spell-9.down.active, .spell-9.down:hover { border-color: #000004 var(--t) var(--t) var(--t); color: #fff; }
+.spell-10.down.active, .spell-10.down:hover { border-color: #000000 var(--t) var(--t) var(--t); color: #fff; }
+
+.spell-10.up::after, .spell-10.down::after { left: -1.05ch; }
 </style>

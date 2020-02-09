@@ -5,13 +5,13 @@
   "scripts": {
     "build": "webpack -p --progress --hide-modules  --colors --config ./webpack.config.js",
     "serve": "webpack-dev-server --mode development --open --inline --hot --content-base dist/ --config ./webpack.config.js",
-    "serve-landing": "SERVE_LANDING=1 webpack-dev-server --mode development --open --inline --hot --content-base dist/ --config ./webpack.config.js",
     "build-measure": "webpack --mode development --env.PAGE_MEASURE --progress --hide-modules  --colors --config ./webpack.config.js",
     "measure": "node ./src/measure-fetch.js",
     "proto": "pbjs -t static-module -w es6 -o src/proto.js src/messages.proto",
     "stats": "webpack --profile --json > dist/compilation-stats.json",
     "download": "curl -o converter/spell_full.xlsx 'https://docs.google.com/spreadsheets/d/1cuwb3QSvWDD7GG5McdvyyRBpqycYuKMRsXgyrvxvLFI/export#gid=459662317&format=xlsx'",
-    "spells": "cd converter && ./convert_spell_full.py > ../src/assets/spells.json"
+    "spells": "cd converter && ./convert_spell_full.py > ../src/assets/spells.json",
+    "spells2e": "cd converter && ./convert_spells_yaml.js | jq '.' > ../src/assets/spells2e.json"
   },
   "dependencies": {
     "terser": "^4.6.3",

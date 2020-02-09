@@ -19,7 +19,7 @@ message AppRoot {
     repeated Spellbook spellbooks = 1;
     optional bool visible = 2 [default = true];
     optional string query = 3;
-    optional int32 level_range = 4 [default = 0];
+    optional int32 level_range = 4 [default = -1];
     repeated string school = 5;
     repeated string subschool = 6;
     repeated string time = 7;
@@ -30,4 +30,14 @@ message AppRoot {
     optional bool in_browser = 12 [default = true];
     optional bool in_edit = 13 [default = false];
     optional bool search_similar = 14 [default = false];
+
+    // 2E
+    repeated string type = 16;
+    repeated string tradition = 17;
+    repeated string action = 18;
+    repeated string schoolTrait = 19;
+    repeated string classTrait = 20;
+    repeated string rarityTrait = 21;
+    repeated string trait = 22;
+    repeated string save = 23;
 }

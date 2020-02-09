@@ -9,7 +9,6 @@ const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
 
 const isDevServer = process.env.WEBPACK_DEV_SERVER;
-const serveLanding = process.env.SERVE_LANDING;
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production';
@@ -18,20 +17,17 @@ module.exports = (env, argv) => {
     var exports = {
         entry: isPageMeasure
             ? path.resolve(__dirname, './src/measure.js')
-            : serveLanding
-                ? path.resolve(__dirname, './src/landing.js')
-                : {
-                    app: path.resolve(__dirname, './src/app.js'),
-                    landing: path.resolve(__dirname, './src/landing.js')
-                },
+            : {
+                pf1e: path.resolve(__dirname, './src/pf1e.js'),
+                pf2e: path.resolve(__dirname, './src/pf2e.js'),
+                landing: path.resolve(__dirname, './src/landing.js')
+            },
         target: 'web',
         mode: argv.mode,
         output: {
             path: path.resolve(__dirname, './dist'),
             publicPath: '/',
-            filename: !isPageMeasure 
-                ? (isDevServer ? '[name].[hash].bundle.js' : '[name].[chunkhash].bundle.js')
-                : 'measure.js',
+            filename: isPageMeasure ? 'measure.js' : '[name].[hash].bundle.js',
             crossOriginLoading: 'anonymous',
         },
         optimization: {
@@ -66,7 +62,7 @@ module.exports = (env, argv) => {
                     test: /\.(png|jpe?g|gif|svg|ttf|woff2?|eot)(\?.*)?$/,
                     loader: 'file-loader',
                     options: {
-                        name: '[name].[hash:7].[ext]',
+                        name: '[name].[contenthash].[ext]',
                         esModules: false
                     }
                 },
@@ -102,10 +98,9 @@ module.exports = (env, argv) => {
             new VueLoaderPlugin(),
             new SriPlugin({
                 enabled: isProduction,
-                hashFuncNames: ['sha256', 'sha384']
+                hashFuncNames: ['sha256']
             }),
             new CompressionPlugin({
-                // test: isProduction ? /\.(js|html|css|svg|woff2?|eot)(\?.*)?$/i : undefined,
                 minRatio: 1
             }),
             ...(isPageMeasure
@@ -115,33 +110,31 @@ module.exports = (env, argv) => {
                         filename: 'measure.html'
                     }),
                 ] 
-                : serveLanding
-                    ? [
-                        new HtmlWebpackPlugin({
-                            template: path.resolve(__dirname, './src/landing.html'),
-                            filename: 'index.html',
-                        })
-                    ]
-                    : [
-                        new HtmlWebpackPlugin({
-                            template: path.resolve(__dirname, './src/app.html'),
-                            filename: isDevServer ? 'index.html' : 'app.html',
-                            excludeChunks: ['landing'],
-                        }),
-                        new HtmlWebpackPlugin({
-                            template: path.resolve(__dirname, './src/landing.html'),
-                            filename: 'landing.html',
-                            excludeChunks: ['app'],
-                        }),
-                    ]
+                : [
+                    new HtmlWebpackPlugin({
+                        template: path.resolve(__dirname, './src/app.html'),
+                        filename: 'pf1e.html',
+                        excludeChunks: ['landing', 'pf2e'],
+                    }),
+                    new HtmlWebpackPlugin({
+                        template: path.resolve(__dirname, './src/app.html'),
+                        filename: 'pf2e.html',
+                        excludeChunks: ['landing', 'pf1e'],
+                    }),
+                    new HtmlWebpackPlugin({
+                        template: path.resolve(__dirname, './src/landing.html'),
+                        filename: 'index.html',
+                        excludeChunks: ['pf1e', 'pf2e'],
+                    }),
+                ]
             ),
             ...[
                 new MiniCssExtractPlugin({
-                    filename: 'style.[chunkhash].css',
+                    filename: 'style.[contenthash].css',
                 }),
                 new FaviconsWebpackPlugin({
                     logo: path.resolve(__dirname, './src/assets/logo.svg'),
-                    prefix: 'fav.[hash:7]',
+                    prefix: 'fav.[hash]',
                     favicons: {
                         icons: {
                             coast: false,

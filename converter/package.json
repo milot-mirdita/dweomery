@@ -1,0 +1,10 @@
+{
+  "name": "convert-spells-yaml",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "dependencies": {
+    "js-yaml": "^3.13.1",
+    "markdown-it": "^10.0.0"
+  }
+}

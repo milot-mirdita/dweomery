@@ -162,6 +162,8 @@ import { Casters, CasterRange, SchoolSymbols, SchoolColors, SpellComponents } fr
 import { SpellCard } from './proto'
 import { length, encode, decode } from '@protobufjs/base64'
 
+import './app.scss'
+
 export default {
   components: {
     Card,
@@ -429,108 +431,3 @@ export default {
   }
 }
 </script>
-
-<style lang="sass">
-@import "common";
-
-.browser {
-  display: flex;
-  flex-direction: row;
-}
-
-.in-selection .content {
-  margin-top: 56px;
-}
-
-@include media-breakpoint-down(sm) { 
-  .browser {
-    flex-direction: column;
-    align-items: flex-start;
-
-    .filter {
-      width: 100%;
-    }
-
-    .spells {
-      width: 100%;
-      justify-content: center;
-    }
-  }
-
-  .fixed-top {
-    position: relative;
-  }
-}
-
-.filter {
-  display: flex;
-  flex-direction: column;
-  width: 275px;
-  padding: 10px;
-}
-
-.spells {
-  position: relative;
-  width: 80vw;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  align-self: flex-start;
-}
-
-@media print {
-  .browser {
-    display: block;
-  }
-  nav, .filter, .navbar {
-    display: none !important;
-  }
-  .spells {
-    display: table;
-    width: 100vw;
-  }
-}
-
-.navbar {
-  a {
-    cursor: pointer;
-  }
-
-  .caster-selection {
-    flex-wrap: wrap;
-    justify-content: center;
-
-    a {
-      font-family: 'PT Sans Narrow', sans-serif;
-      white-space: nowrap;
-    }
-  }
-  .caster {
-    position: relative;
-    display: inline-block;
-    .form-inline {
-      display: inline-block;
-      margin-top: -10px;
-    }
-    .form-control, .input-group-text {
-      height: 1.5em;
-    }
-  }
-
-  .caster-icon {
-    color: rgba(0, 0, 0, 0.5);
-    @extend .fas;
-    @extend .fa-fw;
-    @extend .fa-circle-notch;
-    &.active {
-      @extend .fa-circle;
-      &:hover {
-        @extend .fa-edit;
-      }
-    }
-    &.edit, &.edit.active {
-      @extend .fa-edit;
-    }
-  }
-}
-</style>

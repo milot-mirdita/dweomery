@@ -1,45 +1,50 @@
 <template>
-  <div class="card" :style="{ borderColor : colors[card.school] }">
-    <div class="level" v-if="typeof(card[caster]) != 'undefined'">
-      {{ card[caster] }}
-    </div>
-    <div class="level" v-else>
-      {{ card["sla"] }}+
+  <div class="card" :style="{ borderColor : color }">
+    <div class="level">
+      {{ card["level"] }}
     </div>
     <div class="card-inner">
       <h1><a @click="$emit('selection')">{{ card.name }}<template v-if="knownSpells.includes(card.id)">&nbsp;<i class="fa fa-book text-muted"></i></template></a></h1>
-      <hr :style="{ borderColor : colors[card.school] }" />
-      <div>
-        <div style="float:left">{{ card.school }}<span v-for="s in card.subschools" :key="s"><template v-if="s">, {{s}}</template></span></div>
-        <div style="float:right">{{ card.components_summary }}</div>
-      </div>
-      <div class="summary">
-        <span v-if="card.time">
-          <strong>T</strong>&thinsp;{{card.time}}
+      <hr :style="{ borderColor : color }" />
+        <div class="summary">
+        <span>
+          <strong class="actions" :style="{ color : color }">{{ actions }}</strong><template v-if="describeAction">&thinsp;{{ card.actions[0] }}</template>
+        </span>
+        <span v-if="card.components">
+          <strong>C</strong>&thinsp;{{ card.components.sort().reverse().map(c => c[0]).join(',&thinsp;') }}
+        </span>
+        <span v-if="card.area">
+          <strong>A</strong>&thinsp;{{card.area}}
         </span>
         <span v-if="card.range">
           <strong>R</strong>&thinsp;{{card.range}}
         </span>
-        <span v-if="card.duration">
-          <strong>D</strong>&thinsp;{{card.duration}}
-        </span>
         <span v-if="card.save">
-          <strong :class="{ 'strike-out' : (card.save == 'no') }">S</strong>&thinsp;<span :class="{ 'sr-only' : card.save == 'no' }" v-html="card.save"></span>&thinsp;
+          <strong>S</strong>&thinsp;{{card.save}}
         </span>
-        <span v-if="card.resistance">
-          <strong :class="{ 'strike-out' : (card.resistance == 'no') }">X</strong>&thinsp;<span :class="{ 'sr-only' : card.resistance == 'no' }" v-html="card.resistance"></span>&thinsp;
-        </span>
-        <span v-for="a in card.area_targets" :key="a.kind">
-            <strong>{{a.kind}}</strong>&thinsp;<span v-html="a.description"></span>
-        </span>
+        <template v-if="(card.duration || '').length < (card.targets || '').length">
+          <span v-if="card.duration">
+            <strong>D</strong>&thinsp;{{card.duration}}
+          </span>
+          <span v-if="card.targets">
+            <strong>T</strong>&thinsp;{{card.targets}}
+          </span>
+        </template>
+        <template v-else>
+          <span v-if="card.targets">
+            <strong>T</strong>&thinsp;{{card.targets}}
+          </span>
+          <span v-if="card.duration">
+            <strong>D</strong>&thinsp;{{card.duration}}
+          </span>
+        </template>
       </div>
-      <div class="text" :class="card.expanded ? 'expanded' : ''" v-html="description">
-      </div>
+      <div class="text" :class="card.expanded ? 'expanded' : ''" v-html="card.description"></div>
     </div>
-    <div class="descriptors">
-      <template v-for="(d, i) in card.descriptors">{{d}}<template v-if="i < (card.descriptors.length - 1)">,&thinsp;</template></template>
+    <div class="descriptors" :style="{'font-size' : card.traits.length > 5 ? '6pt' : null}">
+      <template v-for="(d, i) in card.traits">{{d}}<template v-if="i < (card.traits.length - 1)">,&thinsp;</template></template>
     </div>
-    <div class="source">{{ card.source }}</div>
+    <div class="source">{{ card.source }}&thinsp;{{ card.page }}</div>
   </div>
 </template>
 
@@ -56,16 +61,37 @@ export default {
       default: () => []
     }
   },
+  data: function() {
+    return {
+      describeAction: false
+    }
+  },
   computed: {
     colors: () => SchoolColors,
-    description: function() {
-      var description = Array.isArray(this.card.description) ? this.card.description.join('') : this.card.description;
-      const mat = this.card.materials;
-      description += '<!--COMP-->'
-      for (var i in mat) {
-        description += ' <strong>' + mat[i].kind + '</strong>&thinsp;<span>' + mat[i].description + '</span>.'
+    color: function() {
+      for (var key in SchoolColors) {
+        if (!SchoolColors.hasOwnProperty(key)) continue;
+        if (this.card.traits.includes(key)) {
+          return SchoolColors[key];
+        }
       }
-      return description;
+      return SchoolColors["See Text"];
+    },
+    actions: function(){
+      this.describeAction = false;
+      if (this.card.actions.includes('R') || this.card.actions.includes('F')) {
+        this.describeAction = true;
+        return "⬨⬨⬨";
+      }
+      var res = '';
+      res += this.card.actions.includes('3') || this.card.actions.includes('2') || this.card.actions.includes('1') ? '⬧' : '⬨';
+      res += this.card.actions.includes('3') || this.card.actions.includes('2') ? '⬧' : '⬨';
+      res += this.card.actions.includes('3') ? '⬧' : '⬨';
+      if (res == '⬨⬨⬨') {
+        this.describeAction = true;
+        return '⬧⬧⬧';
+      }
+      return res;
     }
   }
 }
@@ -84,18 +110,24 @@ export default {
   margin: 5px;
   padding: 1mm 1.5mm;
 
-  p {
-    margin: 0;
-  }
-
-  ul, ol, dl {
-    margin: 0;
-    padding-left: 8pt;
-  }
-
   @media print {
     display: inline-block;
     page-break-inside: avoid;
+  }
+
+  .actions {
+    letter-spacing: -1.5pt;
+    display: inline-block;
+    position: relative;
+    top: -0.75pt;
+    margin-right: 1pt;
+  }
+  .time {
+    color: #2c3e50;
+    font-size: 7pt;
+    position: absolute;
+    width: 5.5mm;
+    text-align: center;
   }
 
   .level {
