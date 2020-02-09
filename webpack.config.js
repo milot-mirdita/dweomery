@@ -7,7 +7,6 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const PostcssPresetEnvPlugin = require('postcss-preset-env');
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
-// const OfflinePlugin = require('offline-plugin');
 
 const isDevServer = process.env.WEBPACK_DEV_SERVER;
 const serveLanding = process.env.SERVE_LANDING;
@@ -152,9 +151,6 @@ module.exports = (env, argv) => {
                     }
                 })
             ],
-            // ...[
-            //     new OfflinePlugin()
-            // ]
         ],
         devtool: isProduction ? '#source-map' : '#eval-source-map'
     }
