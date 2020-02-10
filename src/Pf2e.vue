@@ -110,9 +110,9 @@
         ></selection> -->
     </form>
     <div class="spells" v-if="filtered.length > 0 ">
-      <card v-for="id in filtered"
-        :key="spells[id].name"
-        :card="spells[id]"
+      <card v-for="spell in filtered"
+        :key="spell.name"
+        :card="spell.spell"
         :known-spells="shouldPrint || !inBrowser ? [] : currentSpellbook.spells"
         @selection="toggleSpell(id)"></card>
     </div>
@@ -354,15 +354,15 @@ export default {
       if (this.shouldPrint) {
         var expanded = [];
         for (var i = 0; i < filtered.length; ++i) {
-          if (Array.isArray(this.spells[filtered[i]].description)) {
-            const pages = this.spells[filtered[i]].description.length;
+          const description = this.spells[filtered[i]].description;
+          if (Array.isArray(description) && description.length > 1) {
+            const pages = description.length;
             for (var j = 0; j < pages; ++j) {
               var clone = JSON.parse(JSON.stringify(this.spells[filtered[i]]));
-              clone.description = this.spells[filtered[i]].description[j];
+              clone.description = description[j];
               if (j != pages - 1) {
-                clone.materials = [];
+                clone.expanded = true;
               }
-              clone.expanded = true;
               expanded.push({ name: filtered[i] + '-' + j, spell: clone});
             }
           } else {
@@ -371,7 +371,9 @@ export default {
         }
         return expanded;
       }
-      return filtered;
+      return filtered.map(name => {
+        return { name : name, spell: this.spells[name] }
+      });
     }
   },
   methods: {

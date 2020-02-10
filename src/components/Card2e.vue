@@ -8,10 +8,10 @@
       <hr :style="{ borderColor : color }" />
         <div class="summary">
         <span>
-          <strong class="actions" :style="{ color : color }">{{ actions }}</strong><template v-if="describeAction">&thinsp;{{ card.actions[0] }}</template>
+          <strong class="actions" :style="{ color : color }">{{ actions }}</strong><template v-if="!this.card.actions.includes('3') && !this.card.actions.includes('2') && !this.card.actions.includes('1') ">&thinsp;{{ card.actions[0] }}</template>
         </span>
         <span v-if="card.components">
-          <strong>C</strong>&thinsp;{{ card.components.sort().reverse().map(c => c[0]).join(',&thinsp;') }}
+          <strong>C</strong>&thinsp;{{ card.components.slice().sort().reverse().map(c => c[0]).join(',&thinsp;') }}
         </span>
         <span v-if="card.area">
           <strong>A</strong>&thinsp;{{card.area}}
@@ -39,7 +39,7 @@
           </span>
         </template>
       </div>
-      <div class="text" :class="card.expanded ? 'expanded' : ''" v-html="card.description"></div>
+      <div class="text" :class="typeof(card.expanded) != 'undefined' && card.expanded ? 'expanded' : ''" v-html="Array.isArray(this.card.description) ? this.card.description.join('') : this.card.description"></div>
     </div>
     <div class="descriptors" :style="{'font-size' : card.traits.length > 5 ? '6pt' : null}">
       <template v-for="(d, i) in card.traits">{{d}}<template v-if="i < (card.traits.length - 1)">,&thinsp;</template></template>
@@ -61,11 +61,6 @@ export default {
       default: () => []
     }
   },
-  data: function() {
-    return {
-      describeAction: false
-    }
-  },
   computed: {
     colors: () => SchoolColors,
     color: function() {
@@ -78,17 +73,15 @@ export default {
       return SchoolColors["See Text"];
     },
     actions: function(){
-      this.describeAction = false;
-      if (this.card.actions.includes('R') || this.card.actions.includes('F')) {
-        this.describeAction = true;
+      const actions = this.card.actions;
+      if (actions.includes('R') || actions.includes('F')) {
         return "⬨⬨⬨";
       }
       var res = '';
-      res += this.card.actions.includes('3') || this.card.actions.includes('2') || this.card.actions.includes('1') ? '⬧' : '⬨';
-      res += this.card.actions.includes('3') || this.card.actions.includes('2') ? '⬧' : '⬨';
-      res += this.card.actions.includes('3') ? '⬧' : '⬨';
+      res += actions.includes('3') || actions.includes('2') || actions.includes('1') ? '⬧' : '⬨';
+      res += actions.includes('3') || actions.includes('2') ? '⬧' : '⬨';
+      res += actions.includes('3') ? '⬧' : '⬨';
       if (res == '⬨⬨⬨') {
-        this.describeAction = true;
         return '⬧⬧⬧';
       }
       return res;
