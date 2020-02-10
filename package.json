@@ -5,8 +5,10 @@
   "scripts": {
     "build": "webpack -p --progress --hide-modules  --colors --config ./webpack.config.js",
     "serve": "webpack-dev-server --mode development --open --inline --hot --content-base dist/ --config ./webpack.config.js",
-    "build-measure": "webpack --mode development --env.PAGE_MEASURE --progress --hide-modules  --colors --config ./webpack.config.js",
-    "measure": "node ./src/measure-fetch.js",
+    "build-measure1e": "webpack --mode development --env.PAGE_MEASURE=1E --progress --hide-modules  --colors --config ./webpack.config.js",
+    "build-measure2e": "webpack --mode development --env.PAGE_MEASURE=2E --progress --hide-modules  --colors --config ./webpack.config.js",
+    "measure1e": "node ./src/measure-fetch.js src/assets/spells.json",
+    "measure2e": "node ./src/measure-fetch.js src/assets/spells2e.json",
     "proto": "pbjs -t static-module -w es6 -o src/proto.js src/messages.proto",
     "stats": "webpack --profile --json > dist/compilation-stats.json",
     "download": "curl -o converter/spell_full.xlsx 'https://docs.google.com/spreadsheets/d/1cuwb3QSvWDD7GG5McdvyyRBpqycYuKMRsXgyrvxvLFI/export#gid=459662317&format=xlsx'",

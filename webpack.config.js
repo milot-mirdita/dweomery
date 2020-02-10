@@ -12,11 +12,13 @@ const isDevServer = process.env.WEBPACK_DEV_SERVER;
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production';
-    const isPageMeasure = typeof (env) != 'undefined' && env.PAGE_MEASURE === true;
-
+    const isPageMeasure = typeof (env) != 'undefined' && typeof (env.PAGE_MEASURE) != 'undefined';
+    const measure2e = isPageMeasure && env.PAGE_MEASURE == "2E";
     var exports = {
         entry: isPageMeasure
-            ? path.resolve(__dirname, './src/measure.js')
+            ? (measure2e
+                ? path.resolve(__dirname, './src/measure2e.js')
+                : path.resolve(__dirname, './src/measure1e.js'))
             : {
                 pf1e: path.resolve(__dirname, './src/pf1e.js'),
                 pf2e: path.resolve(__dirname, './src/pf2e.js'),
