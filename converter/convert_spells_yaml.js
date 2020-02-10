@@ -74,10 +74,10 @@ yaml.load(fs.readFileSync('spells.yaml', { encoding: 'utf-8' })).spell.map((spel
     if (spell["saving throw"] != null) obj.save = spell["saving throw"];
     if (spell["saving throw"] != null) obj.save_filter = cleanupSave(spell["saving throw"]);
     if (spell.descr != null) obj.description = spell.descr;
-    if (spell.cost != null) obj.description += '\n**Cost** ' + spell.cost;
-    if (spell.req != null) obj.description += '\n**Requirement** ' + spell.req;
-    if (spell.trigger != null) obj.description += '\n**Trigger** ' + spell.trigger;
-    if (obj.description != null) obj.description = md.render(cleanupDescription(obj.description))
+    if (spell.cost != null) obj.description += '\n\n**Cost** ' + spell.cost;
+    if (spell.req != null) obj.description += '\n\n**Requirement** ' + spell.req;
+    if (spell.trigger != null) obj.description += '\n\n**Trigger** ' + spell.trigger;
+    if (obj.description != null) obj.description = md.renderInline(cleanupDescription(obj.description))
     if (spell.source[0].abbr != null) obj.source = spell.source[0].abbr;
     if (spell.source[0].page_start != null) obj.page = spell.source[0].page_start;
     formatted[index] = obj;
