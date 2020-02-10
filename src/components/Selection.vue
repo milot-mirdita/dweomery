@@ -125,7 +125,7 @@ export default {
   }
 }
 
-.collapse {
+.collapse, .fa-broom {
   user-select: none;
   cursor: pointer;
 }
