@@ -8,7 +8,7 @@ const CardClass = Vue.extend(Card)
 
 new CardClass({
     propsData: { card: { "school": "Conjuration", "subschools": ["Creation"], "sor": "2", "wiz": "2", "magus": "2", "bloodrager": "2", "id": 1, "name": "Acid Arrow", "components_summary": "V,S,M,F", "components": ["V", "S", "M", "F"], "materials": [{ "kind": "M", "description": "Rhubarb leaf and an adder's stomach" }, { "kind": "F", "description": "A dart" }], "time": "1 std", "tc": "Standard", "ts": false, "range": "400ft+40ft/cl", "duration": "1rd+1rd/3cl", "save": "no", "resistance": "no", "area_targets": [], "description": ["An arrow of acid springs from your hand and speeds to its target. You must succeed on a ranged touch attack to hit your target. The arrow deals <strong>2d4 </strong>points of acid damage with no splash damage. For every three caster levels you possess, the acid, unless neutralized, lasts for another round (to a maximum of 6 additional rounds at 18th level), dealing another <strong>2d4 </strong>points of damage in each round."], "source": "PFRPG Core", "sla": "2", "descriptors": ["Acid"] }, caster: 'wiz' }
-}).$mount('.acidsplash')
+}).$mount('.acidarrow')
 
 new CardClass({
     propsData: {
