@@ -111,10 +111,10 @@
     </form>
     <div class="spells" v-if="filtered.length > 0 ">
       <card v-for="spell in filtered"
-        :key="spell.name"
+        :key="spell.id"
         :card="spell.spell"
         :known-spells="shouldPrint || !inBrowser ? [] : currentSpellbook.spells"
-        @selection="toggleSpell(id)"></card>
+        @selection="toggleSpell(spell.id)"></card>
     </div>
     <div class="spells" v-else>
       No spells selected.
@@ -363,16 +363,16 @@ export default {
               if (j != pages - 1) {
                 clone.expanded = true;
               }
-              expanded.push({ name: filtered[i] + '-' + j, spell: clone});
+              expanded.push({ id: filtered[i] + '-' + j, spell: clone});
             }
           } else {
-            expanded.push({ name: filtered[i] + '-' + j, spell: this.spells[filtered[i]]});
+            expanded.push({ id: filtered[i] + '-' + j, spell: this.spells[filtered[i]]});
           }
         }
         return expanded;
       }
-      return filtered.map(name => {
-        return { name : name, spell: this.spells[name] }
+      return filtered.map(id => {
+        return { id : id, spell: this.spells[id] }
       });
     }
   },
