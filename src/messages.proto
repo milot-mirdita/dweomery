@@ -40,4 +40,5 @@ message AppRoot {
     repeated string rarityTrait = 21;
     repeated string trait = 22;
     repeated string save = 23;
+    repeated int32 spell_range = 24;
 }

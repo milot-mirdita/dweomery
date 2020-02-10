@@ -166,7 +166,7 @@ export default {
         spellbooks: [],
         spellIds: [],
         query: "",
-        levelRange: 401,
+        spellRange: [1, 3],
         type: [],
         types: [],
         tradition: [],
@@ -209,20 +209,22 @@ export default {
     this._persistWatchers = this._persistWatchers || []
 
     const names = [ 
-      'activeSpellbook', 'spellbooks', 'query', 'levelRange',
-      'type', 'tradition', 'action', 'schoolTrait', 'classTrait', 'rarityTrait', 'trait', 'component', 'save', 
+      'activeSpellbook', 'spellbooks', 'query', 'spellRange',
+      'type', 'tradition', 'action', 'schoolTrait', 'classTrait', 'rarityTrait', 'trait', 'component', 'save',
       'inAlphaOrder', 'inBrowser', 'inEdit', 'searchSimilar'
     ];
     for (const name of names) {
         if (typeof store[name] !== 'undefined') {
-          if (name == 'levelRange' && store[name] == -1) {
-            continue;
+          // No default values for arrays in protobuffs
+          if (name == 'spellRange' && store[name].length == 0) {
+            store[name] = this.spellRange;
+          } else {
+            this[name] = store[name];
           }
-          this[name] = store[name]
         }
 
         if (this._persistWatchers.indexOf(name) === -1) {
-          this._persistWatchers.push(name)
+          this._persistWatchers.push(name);
 
           this.$watch(name, val => {
             store[name] = val;
@@ -286,16 +288,6 @@ export default {
       // }).map(function(value) {
       //   return value[0];
       // });
-    },
-    spellRange: {
-      get: function() {
-        var min = this.levelRange % 100;
-        var max = Math.floor(this.levelRange / 100) % 100;
-        return [min, max];
-      },
-      set: function(value) {
-        this.levelRange = value[1] * 100 + value[0];
-      }
     },
     currentSpellbook: function() {
       if (this.activeSpellbook >= 0 && (this.activeSpellbook in this.spellbooks)) {
