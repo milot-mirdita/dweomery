@@ -54,6 +54,6 @@
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.10.3",
     "webpack-hot-middleware": "^2.25.0",
-    "webpack-subresource-integrity": "^1.4.0"
+    "webpack-subresource-integrity": "^1.5.1"
   }
 }
