@@ -17,7 +17,7 @@
     "spells2e": "cd converter && ./convert_spells_yaml.js | jq '.' > ../src/assets/spells2e.json"
   },
   "dependencies": {
-    "terser": "^4.6.3",
+    "terser": "^4.8.1",
     "vue": "^2.6.11"
   },
   "devDependencies": {
