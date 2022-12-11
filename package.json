@@ -32,7 +32,7 @@
     "bootstrap": "^4.4.1",
     "compression-webpack-plugin": "^3.1.0",
     "css-loader": "^3.4.2",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "favicons-webpack-plugin": "^2.1.0",
     "file-loader": "^4.3.0",
     "geckodriver": "^1.19.1",
